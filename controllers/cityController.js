@@ -46,7 +46,10 @@ const createNewCities = async (req, res) => {
     if (duplicate) {
       return res.status(409).json({ message: "Duplicate city name" });
     }
-
+    const state = await State.findById(stateId).exec();
+    if (!state) {
+      return res.status(400).json({ message: "State not found" });
+    }
     // Create and store the new city
     const city = await City.create({ name,state:stateId });
     if (city) {
