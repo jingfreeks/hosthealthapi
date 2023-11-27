@@ -31,6 +31,7 @@ app.use("/city", require("./routes/cityRoutes"));
 app.use("/dept", require("./routes/deptRoutes"));
 app.use("/company", require("./routes/companyRoutes"));
 app.use("/shift", require("./routes/shiftRoutes"));
+app.use("/jobs", require("./routes/jobsRoutes"));
 
 app.all("*", (req, res) => {
   res.status(404);
