@@ -1,39 +1,39 @@
 const mongoose = require("mongoose");
+const AutoIncrement = require('mongoose-sequence')(mongoose)
 
 const jobsSchema = new mongoose.Schema({
   image: {
     type: String,
     required: true,
   },
-  city: {
+  jobtitle: {
     type: String,
     required: true,
   },
   company: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
     required: true,
+    ref: "Company",
   },
   department: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
     required: true,
+    ref: "Department",
   },
   weeks: {
     type: String,
     required: true,
   },
   shift:{
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
     required: true,
+    ref: "Shift",
   },
   match:{
     type: String,
     required: true,
   },
   salaryrange:{
-    type: String,
-    required: true,
-  },
-  address:{
     type: String,
     required: true,
   },
