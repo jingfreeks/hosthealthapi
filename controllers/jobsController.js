@@ -126,7 +126,7 @@ const createNewJobs = async (req, res) => {
 // @desc Update a jobs
 // @route PATCH /jobs
 // @access Private
-const updateCity = async (req, res) => {
+const updateJobs = async (req, res) => {
   const {
     id,
     image,
@@ -231,4 +231,4 @@ const deleteJobs = async (req, res) => {
   res.json(reply);
 };
 
-module.exports = { getAllJobs, createNewJobs, updateCity, deleteJobs };
+module.exports = { getAllJobs, createNewJobs, updateJobs, deleteJobs };
