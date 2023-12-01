@@ -1,10 +1,11 @@
 const express = require("express");
 const router = express.Router();
+const dynamic_path = express();
 const jobsController = require("../controllers/jobsController");
-const myJobsController= require("../controllers/myjobsController")
+const myJobsController = require("../controllers/myjobsController");
 const verifyJWT = require("../middleware/verifyJWT");
 
-router.use(verifyJWT)
+router.use(verifyJWT);
 router
   .route("/")
   .get(jobsController.getAllJobs)
@@ -12,9 +13,11 @@ router
   .patch(jobsController.updateJobs)
   .delete(jobsController.deleteJobs);
 
-  router
+router.route("/myjobs/:userId").get(myJobsController.getMyJobs)
+
+router
   .route("/myjobs")
-  .get(myJobsController.getMyJobs)
+  // .get(myJobsController.getMyJobs)
   .post(myJobsController.createInterestedJobs)
   .patch(myJobsController.updateMyStatus)
   .delete(myJobsController.deleteMyJobs);

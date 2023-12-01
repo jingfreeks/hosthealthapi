@@ -11,8 +11,7 @@ const User = require('../models/Users')
 // @route GET /jobs/myjobs
 // @access Private
 const getMyJobs = async (req, res) => {
-
-   const {userId}=req.body;
+   const {userId}=req.params;
   if(!userId){
     return res.status(400).json({ message: "User Id should be requried" });
   }
@@ -36,7 +35,10 @@ const getMyJobs = async (req, res) => {
       const shift = await Shift.findById(jobs.shift).lean().exec();
       return {
         ...myjob,
-        ...jobs,
+        salaryrange:jobs.salaryrange,
+        image:jobs.image,
+        jobtitle:jobs.jobtitle, 
+        match:jobs.match,
         statename: state.name.substring(0, 2),
         cityname: city.name,
         compname: comp.name,
