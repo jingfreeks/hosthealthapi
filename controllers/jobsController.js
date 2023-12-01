@@ -130,7 +130,6 @@ const updateJobs = async (req, res) => {
   const {
     id,
     image,
-    cityId,
     jobtitle,
     compId,
     deptId,
@@ -144,23 +143,16 @@ const updateJobs = async (req, res) => {
   if (
     !id ||
     !image ||
-    !cityId ||
     !jobtitle ||
     !deptId ||
     !weeks ||
     !shiftId ||
     !match ||
-    !salaryrange
+    !salaryrange ||
+    !compId
   ) {
     return res.status(400).json({ message: "All fields are required" });
   }
-
-  // confirm for existing city to update
-  const city = await City.findById(cityId).exec();
-  if (!city) {
-    return res.status(400).json({ message: "City not found" });
-  }
-
 
   // confirm for existing department to update
   const dept = await Dept.findById(deptId).exec();
@@ -191,7 +183,6 @@ const updateJobs = async (req, res) => {
     return res.status(400).json({ message: "City not found" });
   }
   jobs.image = image;
-  jobs.city = cityId;
   jobs.jobtitle = jobtitle;
   jobs.company = compId;
   jobs.department = deptId;
