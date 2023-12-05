@@ -5,6 +5,22 @@ const Dept = require("../models/Department");
 const Comp = require("../models/Company");
 const Shift = require("../models/Shift");
 
+const getjobdetailinfo = async (job) => {
+  const comp = await Comp.findById(job.company).lean().exec();
+  const city = await City.findById(comp.city).lean().exec();
+  const state = await State.findById(city.state).lean().exec();
+  const dept = await Dept.findById(job.department).lean().exec();
+  const shift = await Shift.findById(job.shift).lean().exec();
+  return {
+    ...job,
+    statename: state.name.substring(0, 2),
+    cityname: city.name,
+    compname: comp.name,
+    compaddress: comp.address,
+    shiftname: shift.title,
+    deptname: dept.name,
+  };
+};
 // @desc Get all jobs
 // @route GET /jobs
 // @access Private
@@ -21,20 +37,8 @@ const getAllJobs = async (req, res) => {
   // You could also do this with a for...of loop
   const jobsDetails = await Promise.all(
     jobs.map(async (job) => {
-      const comp = await Comp.findById(job.company).lean().exec();
-      const city = await City.findById(comp.city).lean().exec();
-      const state = await State.findById(city.state).lean().exec();
-      const dept = await Dept.findById(job.department).lean().exec();
-      const shift = await Shift.findById(job.shift).lean().exec();
-      return {
-        ...job,
-        statename: state.name.substring(0, 2),
-        cityname: city.name,
-        compname: comp.name,
-        compaddress: comp.address,
-        shiftname: shift.title,
-        deptname: dept.name,
-      };
+      const jdetail = await getjobdetailinfo(job);
+      return jdetail;
     })
   );
   res.json(jobsDetails);
@@ -71,7 +75,7 @@ const createNewJobs = async (req, res) => {
     }
 
     // Check for duplicate title
-    const duplicate = await Jobs.findOne({ jobtitle,company: compId})
+    const duplicate = await Jobs.findOne({ jobtitle, company: compId })
       .collation({ locale: "en", strength: 2 })
       .lean()
       .exec();
@@ -222,4 +226,22 @@ const deleteJobs = async (req, res) => {
   res.json(reply);
 };
 
-module.exports = { getAllJobs, createNewJobs, updateJobs, deleteJobs };
+const viewJobDetails = async (req, res) => {
+  const { jobId } = req.params;
+
+  const jobs = await Jobs.findById(jobId).exec();
+
+  if (!jobs) {
+    return res.status(400).json({ message: "Job is not found in our list" });
+  }
+  
+  const jobsDetails = await getjobdetailinfo(jobs);
+  res.json(jobsDetails);
+};
+module.exports = {
+  getAllJobs,
+  createNewJobs,
+  updateJobs,
+  deleteJobs,
+  viewJobDetails,
+};

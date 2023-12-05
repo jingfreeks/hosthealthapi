@@ -13,6 +13,7 @@ router
   .patch(jobsController.updateJobs)
   .delete(jobsController.deleteJobs);
 
+router.route("/:jobId").get(jobsController.viewJobDetails)
 router.route("/myjobs/:userId").get(myJobsController.getMyJobs)
 
 router
