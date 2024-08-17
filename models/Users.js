@@ -9,14 +9,22 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  firstname:{
-    type:String,
-  },
   roles: {
     type: [String],
     default: ["Applicant"],
   },
-
+  firstname: {
+    type: String,
+  },
+  lastname: {
+    type: String,
+  },
+  middlename: {
+    type: String,
+  },
+  address: {
+    type: String,
+  },
   active: {
     type: Boolean,
     default: true,
