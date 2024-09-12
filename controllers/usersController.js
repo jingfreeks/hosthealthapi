@@ -1,6 +1,15 @@
 const User = require("../models/Users");
 const Note = require("../models/Notes");
 const bcryp = require("bcrypt");
+const {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  sendEmailVerification,
+  sendPasswordResetEmail,
+} = require("../config/firebase");
+const auth = getAuth();
 
 //get all users
 // get
@@ -10,6 +19,35 @@ const getAllUsers = async (req, res) => {
     return res.status(400).json({ message: "No users Found", error: true });
   }
   res.json(users);
+};
+
+//create firebase new user
+//post
+const createFNewUser = async (req, res) => {
+  const { email, password,roles } = req.body;
+
+  const duplicate = await User.findOne({ email }).lean().exec();
+  if (duplicate) {
+    return res.status(409).json({ message: "Duplicate Email address" });
+  }
+  await createUserWithEmailAndPassword(
+    auth,
+    email,
+    password
+  );
+  const hashedPwd = await bcryp.hash(password, 10); //salt round
+  const userObject =
+  !Array.isArray(roles) || !roles.length
+    ? { email, password: hashedPwd }
+    : { email, password: hashedPwd, roles };
+//create user and store a new user
+
+const user = await User.create(userObject);
+  if (user) {
+    res.status(201).json({ message: `New email ${email} created` });
+  } else {
+    res.status(400).json({ message: "Invalid user data received" });
+  }
 };
 //create new user
 //post
@@ -126,4 +164,5 @@ module.exports = {
   createNewUser,
   updateUser,
   deleteUser,
+  createFNewUser,
 };
