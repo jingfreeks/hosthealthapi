@@ -3,6 +3,16 @@ require("express-async-errors");
 const express = require("express");
 const app = express();
 const path = require("path");
+
+
+
+// const fadmin=require("firebase-admin")
+// const credentials=require("./serviceAccountKey.json")
+
+// fadmin.initializeApp({
+//   credential:fadmin.credential.cert(credentials)
+// })
+
 const { logger } = require("./middleware/logger");
 const errorHandler = require("./middleware/errorHandler");
 const cookieParser = require("cookie-parser");
@@ -25,6 +35,7 @@ app.use("/", require("./routes/root"));
 app.use("/auth", require("./routes/authRoutes"));
 app.use("/users", require("./routes/userRoutes"));
 app.use("/signup", require("./routes/signupRoutes"));
+app.use("/fsignup", require("./routes/firebaseSignupRoutes"));
 app.use("/notes", require("./routes/notesRoutes"));
 app.use("/states", require("./routes/stateRoutes"));
 app.use("/city", require("./routes/cityRoutes"));
@@ -32,6 +43,8 @@ app.use("/dept", require("./routes/deptRoutes"));
 app.use("/company", require("./routes/companyRoutes"));
 app.use("/shift", require("./routes/shiftRoutes"));
 app.use("/jobs", require("./routes/jobsRoutes"));
+app.use("/profile", require("./routes/profileRoutes"));
+app.use("/bank", require("./routes/bankRoutes"));
 
 app.all("*", (req, res) => {
   res.status(404);

@@ -2,13 +2,64 @@ const User = require("../models/Users");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
+const {
+  getAuth,
+  signInWithEmailAndPassword,
+} = require("../config/firebase");
+const auth = getAuth();
+// @desc firebase Login
+// @route POST /auth/flogin
+// @access Private
+// const userCredential= await auth().signInWithEmailAndPassword(data.email, data.password)
+const fLogin = async (req, res) => {
+  const { email, password } = req.body;
+  const usrResponse = await signInWithEmailAndPassword(auth,email, password);
+  const founUser = await User.findOne({ email }).exec();
+  if (!founUser || !founUser.active) {
+    return res.status(401).json({ message: "User not found" });
+  }
+
+  const match = await bcrypt.compare(password, founUser.password);
+  if (!match) return res.status(401).json({ message: "Unauthorized" });
+
+  const accessToken = jwt.sign(
+    {
+      UserInfo: {
+        username: founUser.username,
+        roles: founUser.roles,
+      },
+    },
+    process.env.ACCESS_TOKEN_SECRET,
+    { expiresIn: "10m" }
+  );
+
+  const refreshToken = jwt.sign(
+    {
+      username: founUser.username,
+    },
+    process.env.REFRESH_TOKEN_SECRET,
+    {
+      expiresIn: "1d",
+    }
+  );
+
+  // create secure cookie with refresh token
+  res.cookie("jwt", refreshToken, {
+    httpOnly: true, //accessable only by web server
+    secure: true, // https
+    sameSite: "None", //cross-site cookie
+    maxAge: 7 * 24 * 60 * 60 * 1000, // cookie expiry : set to match rT
+  });
+  res.json({ accessToken, userId: founUser._id });
+  // res.json(usrResponse);
+};
+
 // @desc Login
 // @route POST /auth/login
 // @access Private
 
 const login = async (req, res) => {
   const { username, password } = req.body;
-  console.log("username", username);
   if (!username || !password) {
     return res
       .status(400)
@@ -16,7 +67,6 @@ const login = async (req, res) => {
   }
 
   const founUser = await User.findOne({ username }).exec();
-
   if (!founUser || !founUser.active) {
     return res.status(401).json({ message: "Username not found" });
   }
@@ -52,7 +102,7 @@ const login = async (req, res) => {
     sameSite: "None", //cross-site cookie
     maxAge: 7 * 24 * 60 * 60 * 1000, // cookie expiry : set to match rT
   });
-  res.json({ accessToken });
+  res.json({ accessToken, userId: founUser._id });
 };
 
 // @desc Refresh
@@ -107,4 +157,5 @@ module.exports = {
   login,
   refresh,
   logout,
+  fLogin,
 };

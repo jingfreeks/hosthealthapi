@@ -16,14 +16,14 @@ const getAllNotes = async (req, res) => {
   // Add username to each note before sending the response
   // See Promise.all with map() here: https://youtu.be/4lqJBBEpjRE
   // You could also do this with a for...of loop
-  const notesWithUser = await Promise.all(
-    notes.map(async (note) => {
-      const user = await User.findById(note.user).lean().exec();
-      return { ...note, username: user.username };
-    })
-  );
+  // const notesWithUser = await Promise.all(
+  //   notes.map(async (note) => {
+  //     const user = await User.findById(note.user).lean().exec();
+  //     return { ...note, username: user.username };
+  //   })
+  // );
 
-  res.json(notesWithUser);
+  res.json(notes);
 };
 
 // @desc Create new note
@@ -31,10 +31,10 @@ const getAllNotes = async (req, res) => {
 // @access Private
 const createNewNote = async (req, res) => {
   try {
-    const { user, title, text } = req.body;
+    const { title, body, lat, long } = req.body;
 
     // Confirm data
-    if (!user || !title || !text) {
+    if (!body || !title || !lat || !long) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
@@ -49,7 +49,7 @@ const createNewNote = async (req, res) => {
     }
 
     // Create and store the new user
-    const note = await Note.create({ user, title, text });
+    const note = await Note.create({ title, body, lat, long });
     if (note) {
       // Created
       return res.status(201).json({ message: "New note created" });
@@ -65,10 +65,10 @@ const createNewNote = async (req, res) => {
 // @route PATCH /notes
 // @access Private
 const updateNote = async (req, res) => {
-  const { id, user, title, text, completed } = req.body;
+  const { id,title, body, lat, long } = req.body;
 
   // Confirm data
-  if (!id || !user || !title || !text || typeof completed !== "boolean") {
+  if (!id || !body || !title || !lat || !long) {
     return res.status(400).json({ message: "All fields are required" });
   }
 
@@ -90,10 +90,10 @@ const updateNote = async (req, res) => {
     return res.status(409).json({ message: "Duplicate note title" });
   }
 
-  note.user = user;
+  note.body = body;
   note.title = title;
-  note.text = text;
-  note.completed = completed;
+  note.lat = lat;
+  note.long = long;
 
   const updatedNote = await note.save();
 
