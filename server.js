@@ -23,7 +23,6 @@ const mongoose = require("mongoose");
 const { logEvents } = require("./middleware/logger");
 const PORT = process.env.PORT || 3500;
 
-console.log(process.env.NODE_ENV);
 connectDb();
 app.use(logger);
 app.use(cors(corsOptions));
