@@ -22,7 +22,9 @@ const getAllNotes = async (req, res) => {
   //     return { ...note, username: user.username };
   //   })
   // );
-
+  notes.sort(function(a,b){
+    return new Date(b.createdAt) - new Date(a.createdAt)
+  })
   res.json(notes);
 };
 
