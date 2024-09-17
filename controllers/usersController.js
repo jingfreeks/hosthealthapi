@@ -87,7 +87,7 @@ const createNewUser = async (req, res) => {
 //update a user
 //patch
 const updateUser = async (req, res) => {
-  const { id, username, roles, active, password } = req.body;
+  const { id, username, roles, active, password,email } = req.body;
 
   if (
     !id ||
@@ -119,6 +119,7 @@ const updateUser = async (req, res) => {
   }
 
   user.username = username;
+  user.email = email;
   user.roles = roles;
   user.active = active;
 

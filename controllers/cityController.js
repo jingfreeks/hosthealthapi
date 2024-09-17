@@ -51,7 +51,7 @@ const createNewCities = async (req, res) => {
       return res.status(400).json({ message: "State not found" });
     }
     // Create and store the new city
-    const city = await City.create({ name,state:stateId });
+    const city = await City.create({ name,state:stateId,image });
     if (city) {
       // Created
       return res.status(201).json({ message: "New city created" });
