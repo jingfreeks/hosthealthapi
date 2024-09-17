@@ -1,4 +1,5 @@
 const State = require("../models/States");
+const City = require("../models/Cities");
 
 // @desc Get all states
 // @route GET /states
@@ -32,7 +33,6 @@ const createNewStates = async (req, res) => {
       .collation({ locale: "en", strength: 2 })
       .lean()
       .exec();
-
     if (duplicate) {
       return res.status(409).json({ message: "Duplicate state name" });
     }
@@ -94,16 +94,25 @@ const deleteState = async (req, res) => {
 
   // Confirm data
   if (!id) {
-    return res.status(400).json({ message: "Note ID required" });
+    return res.status(400).json({ message: "State ID required" });
   }
 
-  // Confirm note exists to delete
+  // Confirm state exists to delete
   const state = await State.findById(id).exec();
 
   if (!state) {
     return res.status(400).json({ message: "State not found" });
   }
+  // checking city if the state id is already used
 
+  const city = await City.findOne({ state: id })
+    .collation({ locale: "en", strength: 2 })
+    .lean()
+    .exec();
+  console.log('city',city)
+  if(city){
+    return res.status(400).json({ message: "Cannot delete state because its already existed on the other transaction" });
+  }
   const result = await state.deleteOne();
 
   const reply = `City '${result.name}' with ID ${result._id} deleted`;
@@ -112,8 +121,8 @@ const deleteState = async (req, res) => {
 };
 
 module.exports = {
-    getAllStates,
-    createNewStates,
-    updateState,
-    deleteState,
+  getAllStates,
+  createNewStates,
+  updateState,
+  deleteState,
 };

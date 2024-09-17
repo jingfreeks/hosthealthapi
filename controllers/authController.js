@@ -72,7 +72,7 @@ const login = async (req, res) => {
   }
 
   const match = await bcrypt.compare(password, founUser.password);
-  if (!match) return res.status(401).json({ message: "Unauthorized" });
+  if (!match) return res.status(401).json({ message: "Invalid Password" });
 
   const accessToken = jwt.sign(
     {
@@ -82,7 +82,8 @@ const login = async (req, res) => {
       },
     },
     process.env.ACCESS_TOKEN_SECRET,
-    { expiresIn: "10m" }
+    // { expiresIn: "10m" }
+    { expiresIn: "1d" }
   );
 
   const refreshToken = jwt.sign(
@@ -102,7 +103,7 @@ const login = async (req, res) => {
     sameSite: "None", //cross-site cookie
     maxAge: 7 * 24 * 60 * 60 * 1000, // cookie expiry : set to match rT
   });
-  res.json({ accessToken, userId: founUser._id });
+  res.json({ accessToken, userId: founUser._id,roles:founUser.roles });
 };
 
 // @desc Refresh
