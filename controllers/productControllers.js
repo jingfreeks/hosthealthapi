@@ -121,9 +121,25 @@ const deleteProducts = async (req, res) => {
   res.json(reply);
 };
 
+// @desc View product details
+// @route view  /product/{prodId}
+// @access Private
+
+const viewProductDetails=async(req, res)=>{
+    const { prodId } = req.params;
+
+    const product = await Product.findById(prodId).exec();
+  
+    if (!product) {
+      return res.status(400).json({ message: "Product is not found in our list" });
+    }
+
+    res.json(product);
+}
 module.exports = {
   getAllProducts,
   createNewProducts,
   updateProducts,
   deleteProducts,
+  viewProductDetails
 };
