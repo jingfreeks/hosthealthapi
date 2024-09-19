@@ -6,7 +6,8 @@ const {
     signInWithEmailAndPassword, 
     signOut, 
     sendEmailVerification, 
-    sendPasswordResetEmail
+    sendPasswordResetEmail,
+    signInWithPhoneNumber
   } = require("firebase/auth") ;
 const firebaseConfig = {
   apiKey: process.env.FIREBASE_API_KEY,
@@ -26,4 +27,5 @@ firebase.initializeApp(firebaseConfig);
     signOut,
     sendEmailVerification,
     sendPasswordResetEmail,
+    signInWithPhoneNumber
   };
