@@ -4,15 +4,6 @@ const express = require("express");
 const app = express();
 const path = require("path");
 
-
-
-// const fadmin=require("firebase-admin")
-// const credentials=require("./serviceAccountKey.json")
-
-// fadmin.initializeApp({
-//   credential:fadmin.credential.cert(credentials)
-// })
-
 const { logger } = require("./middleware/logger");
 const errorHandler = require("./middleware/errorHandler");
 const cookieParser = require("cookie-parser");
@@ -45,6 +36,8 @@ app.use("/jobs", require("./routes/jobsRoutes"));
 app.use("/profile", require("./routes/profileRoutes"));
 app.use("/bank", require("./routes/bankRoutes"));
 app.use("/product", require("./routes/productRoutes"));
+app.use("/upload",require("./routes/uploadRoutes"))
+app.use(express.static('./public'))
 
 app.all("*", (req, res) => {
   res.status(404);
