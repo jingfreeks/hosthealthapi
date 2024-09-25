@@ -1,6 +1,7 @@
 
 const path = require("path");
 const util=require("util")
+const hostName=require('os').hostname();
 // @desc Get all banks
 // @route GET /banks
 // @access Private
@@ -9,19 +10,15 @@ const getUpload = async (req, res) => {
   const md5=files.avatar.md5;
 
   const extension=path.extname(files.avatar.name)
-  const url="/uploads/" + md5 + extension
+  const url="uploads/" + md5 + extension
 
 
-   await util.promisify(files.avatar.mv)("./public"+url)
-  // Object.keys(files).forEach((key) => {
-  //   const filepath = path.resolve('./', "files", files[key].name);
-  //   console.log('filepath',filepath)
-
-  // });
+   await util.promisify(files.avatar.mv)("./public/"+url)
 
   return res.json({
     status: "success",
-    message: url,
+    url,
+    message: "Upload Success",
   });
 };
 
