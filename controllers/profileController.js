@@ -29,17 +29,18 @@ const getProfile = async (req, res) => {
 // @route POST /notes
 // @access Private
 const updateProfile = async (req, res) => {
-  const { id, firstName, lastName, middleName } = req.body;
+  const { id, firstName, lastName, middleName,image } = req.body;
   const { userId } = req.params;
 
   const user = await Profile.findOne({user:userId}).lean().exec();
-  console.log('users',user,lastName)
+
   if (!user) {
     const userObject={
       firstname:firstName,
       lastname:lastName,
       middlename:middleName,
-      user:userId
+      user:userId,
+      picture:image
     }
     await Profile.create(userObject);
   }else{
@@ -47,7 +48,7 @@ const updateProfile = async (req, res) => {
     users.firstname = firstName;
     users.lastname = lastName;
     users.middlename = middleName;
-  
+    users.picture=image;
     await users.save();
   }
 
