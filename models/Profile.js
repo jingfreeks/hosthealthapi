@@ -14,6 +14,9 @@ const profileSchema = new mongoose.Schema(
     address: {
       type: String,
     },
+    picture:{
+      type:String,
+    },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Users",

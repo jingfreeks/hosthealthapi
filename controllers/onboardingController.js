@@ -1,9 +1,9 @@
 const Profile = require("../models/Profile");
 
-// @desc Get all notes
+// @desc Get all bankInfo
 // @route GET /notes
 // @access Private
-const getProfile = async (req, res) => {
+const getBankInfo = async (req, res) => {
   // Get all notes from MongoDB
 
   const { userId } = req.params;
