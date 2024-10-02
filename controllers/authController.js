@@ -80,8 +80,8 @@ const login = async (req, res) => {
       },
     },
     process.env.ACCESS_TOKEN_SECRET,
-    // { expiresIn: "10m" }
-    { expiresIn: "1d" }
+    { expiresIn: "15m" }
+    // { expiresIn: "1d" }
   );
 
   const refreshToken = jwt.sign(
@@ -105,6 +105,7 @@ const login = async (req, res) => {
 
   res.json({
     accessToken,
+    refreshToken,
     userId: founUser._id,
     roles: founUser.roles,
     isOnBoarding: usrProfile ? true : false,
@@ -116,7 +117,6 @@ const login = async (req, res) => {
 // @access Public - because access token expired
 const refresh = (req, res) => {
   const cookies = req.cookies;
-
   if (!cookies?.jwt) return res.status(401).json({ message: "Unauthorized" });
 
   const refreshToken = cookies.jwt;
@@ -127,7 +127,7 @@ const refresh = (req, res) => {
     async (err, decoded) => {
       if (err)
         return res.status(403).json({ message: "Forbidden", error: true });
-
+  
       const foundUser = await User.findOne({
         username: decoded.username,
       }).exec();

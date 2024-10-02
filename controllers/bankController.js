@@ -19,7 +19,7 @@ const getAllBanks = async (req, res) => {
 // @access Private
 const createNewBanks = async (req, res) => {
   try {
-    const { name } = req.body;
+    const { name,address } = req.body;
 
     // Confirm data
     if (!name) {
@@ -37,7 +37,7 @@ const createNewBanks = async (req, res) => {
     }
 
     // Create and store the new city
-    const banks = await Bank.create({ name });
+    const banks = await Bank.create({ name,address });
     if (banks) {
       // Created
       return res.status(201).json({ message: "New bank created" });
@@ -53,7 +53,7 @@ const createNewBanks = async (req, res) => {
 // @route PATCH /bank
 // @access Private
 const updateBank = async (req, res) => {
-  const { id, name} = req.body;
+  const { id, name,address} = req.body;
 
   // Confirm data
   if (!id || !name) {
@@ -78,9 +78,11 @@ const updateBank = async (req, res) => {
   }
 
   bank.name = name;
+  bank.address=address;
+
   const updatedBank = await bank.save();
 
-  res.json(`'${updatedBank.name}' city  updated`);
+  res.json(`'${updatedBank.name}' bank  updated`);
 };
 
 // @desc Delete a bank
@@ -91,7 +93,7 @@ const deleteBank = async (req, res) => {
 
   // Confirm data
   if (!id) {
-    return res.status(400).json({ message: "City ID required" });
+    return res.status(400).json({ message: "Bank ID required" });
   }
 
   //check if this exist to jobs before deleting
