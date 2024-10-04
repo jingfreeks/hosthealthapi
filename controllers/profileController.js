@@ -20,6 +20,7 @@ const getProfile = async (req, res) => {
     firstName: usrProfile.firstname,
     lastName: usrProfile.lastname,
     middlename: usrProfile.middlename,
+    picture:usrProfile.picture,
   };
 
   res.json(profileInfo);
