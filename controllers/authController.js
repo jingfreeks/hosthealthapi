@@ -102,7 +102,6 @@ const login = async (req, res) => {
     maxAge: 7 * 24 * 60 * 60 * 1000, // cookie expiry : set to match rT
   });
   const usrProfile = await Profile.findOne({ userId:founUser._id }).lean();
-  console.log('usrProfile',usrProfile)
   res.json({
     accessToken,
     refreshToken,
