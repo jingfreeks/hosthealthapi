@@ -21,6 +21,16 @@ const getjobdetailinfo = async (job) => {
     deptname: dept.name,
   };
 };
+
+const getJobsDetails = async (jobs) => {
+  return await Promise.all(
+    jobs.map(async (job) => {
+      const jdetail = await getjobdetailinfo(job);
+      return jdetail;
+    })
+  );
+};
+
 // @desc Get all jobs
 // @route GET /jobs
 // @access Private
@@ -28,19 +38,12 @@ const getAllJobs = async (req, res) => {
   // Get all notes from MongoDB
   const jobs = await Jobs.find().lean();
 
-  // If no city
+  // If no jobs
   if (!jobs?.length) {
     return res.status(400).json({ message: "No jobs found" });
   }
 
-  // Add state to each city before sending the response
-  // You could also do this with a for...of loop
-  const jobsDetails = await Promise.all(
-    jobs.map(async (job) => {
-      const jdetail = await getjobdetailinfo(job);
-      return jdetail;
-    })
-  );
+  const jobsDetails = await getJobsDetails(jobs);
   res.json(jobsDetails);
 };
 
@@ -234,7 +237,7 @@ const viewJobDetails = async (req, res) => {
   if (!jobs) {
     return res.status(400).json({ message: "Job is not found in our list" });
   }
-  
+
   const jobsDetails = await getjobdetailinfo(jobs);
   res.json(jobsDetails);
 };
@@ -244,4 +247,6 @@ module.exports = {
   updateJobs,
   deleteJobs,
   viewJobDetails,
+  getJobsDetails,
+  getjobdetailinfo
 };
