@@ -1,9 +1,46 @@
 const City = require("../models/Cities");
 const State = require("../models/States");
-
+const Company=require("../models/Company")
+const Jobs=require('../models/Jobs')
+const JobsController=require('./jobsController')
 // @desc Get all city
 // @route GET /city
 // @access Private
+
+const getMatches=async(id)=>{
+  let matches=0;
+  //get company
+  
+  const companies=await getCompanies(id)
+
+  await Promise.all(companies.map(async(company)=>{
+      const jobsList=await Jobs.find({company:company._id}).count()
+      matches=matches + jobsList;
+  }))
+
+  return matches
+}
+
+const getCompanies=async(id)=>{
+  return await Company.find({city:id}).lean()
+}
+
+const getCitiesByJobs=async(req, res)=>{
+  let jobsCity=[];
+  const {cityId}=req.params
+  const companies=await getCompanies(cityId)
+   await Promise.all(companies.map(async(company)=>{
+    const jobslist= await Jobs.find({company:company._id}).lean()
+     const joblist=await Promise.all(jobslist.map(async(jobslist)=>{
+      return JobsController.getjobdetailinfo(jobslist)
+    }
+  ))
+  jobsCity=[...jobsCity,...joblist]
+    // return  JobsController.getjobdetailinfo(jobslist)
+}))
+res.json(jobsCity);
+  //get jobs by company
+}
 const getAllCities = async (req, res) => {
   // Get all notes from MongoDB
   const cities = await City.find().lean();
@@ -19,7 +56,10 @@ const getAllCities = async (req, res) => {
   const citiesWithStates = await Promise.all(
     cities.map(async (city) => {
       const state = await State.findById(city.state).lean().exec();
-      return { ...city, statename: state.name,matches:'15',salary:"$2,659" };
+      //get matches
+      const matches=await getMatches(city._id)
+
+      return { ...city, statename: state.name,matches,salary:"$2,659" };
     })
   );
   res.json(citiesWithStates);
@@ -136,4 +176,5 @@ module.exports = {
     createNewCities,
     updateCity,
     deleteCity,
+    getCitiesByJobs,
 };

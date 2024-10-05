@@ -3,7 +3,7 @@ const router = express.Router();
 const citiesController = require("../controllers/cityController");
 const verifyJWT = require("../middleware/verifyJWT");
 
-router.use(verifyJWT)
+router.use(verifyJWT);
 router
   .route("/")
   .get(citiesController.getAllCities)
@@ -11,4 +11,5 @@ router
   .patch(citiesController.updateCity)
   .delete(citiesController.deleteCity);
 
+router.route("/:cityId").get(citiesController.getCitiesByJobs);
 module.exports = router;
