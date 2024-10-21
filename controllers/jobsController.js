@@ -4,6 +4,7 @@ const State = require("../models/States");
 const Dept = require("../models/Department");
 const Comp = require("../models/Company");
 const Shift = require("../models/Shift");
+const Myjob = require('../models/Myjobs');
 
 const getjobdetailinfo = async (job) => {
   const comp = await Comp.findById(job.company).lean().exec();
@@ -11,6 +12,7 @@ const getjobdetailinfo = async (job) => {
   const state = await State.findById(city.state).lean().exec();
   const dept = await Dept.findById(job.department).lean().exec();
   const shift = await Shift.findById(job.shift).lean().exec();
+  const myjob = await Myjob.findOne({jobId:job._id}).exec();
   return {
     ...job,
     statename: state.name.substring(0, 2),
@@ -19,6 +21,7 @@ const getjobdetailinfo = async (job) => {
     compaddress: comp.address,
     shiftname: shift.title,
     deptname: dept.name,
+    status:myjob?.status || 'available'
   };
 };
 
