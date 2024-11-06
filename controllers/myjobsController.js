@@ -60,7 +60,7 @@ const createInterestedJobs = async (req, res) => {
       jobId,
       userId,
     } = req.body;
-
+    console.log('request',req.body)
     // Confirm data
     if (
       !jobId ||

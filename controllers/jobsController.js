@@ -5,14 +5,16 @@ const Dept = require("../models/Department");
 const Comp = require("../models/Company");
 const Shift = require("../models/Shift");
 const Myjob = require('../models/Myjobs');
+const Bookmark=require('../models/Bookmark');
 
-const getjobdetailinfo = async (job) => {
+const getjobdetailinfo = async (job,userId) => {
   const comp = await Comp.findById(job.company).lean().exec();
   const city = await City.findById(comp.city).lean().exec();
   const state = await State.findById(city.state).lean().exec();
   const dept = await Dept.findById(job.department).lean().exec();
   const shift = await Shift.findById(job.shift).lean().exec();
   const myjob = await Myjob.findOne({jobId:job._id}).exec();
+  const bookmark=await Bookmark.findOne({jobId:job._id,user:userId})
   return {
     ...job,
     statename: state.name.substring(0, 2),
@@ -21,14 +23,15 @@ const getjobdetailinfo = async (job) => {
     compaddress: comp.address,
     shiftname: shift.title,
     deptname: dept.name,
-    status:myjob?.status || 'available'
+    status:myjob?.status || 'available',
+    bookmark:bookmark ? true:false
   };
 };
 
-const getJobsDetails = async (jobs) => {
+const getJobsDetails = async (jobs,userId) => {
   return await Promise.all(
     jobs.map(async (job) => {
-      const jdetail = await getjobdetailinfo(job);
+      const jdetail = await getjobdetailinfo(job,userId);
       return jdetail;
     })
   );
@@ -39,14 +42,16 @@ const getJobsDetails = async (jobs) => {
 // @access Private
 const getAllJobs = async (req, res) => {
   // Get all notes from MongoDB
+
   const jobs = await Jobs.find().lean();
+  const {userId}=req.params;
 
   // If no jobs
   if (!jobs?.length) {
     return res.status(400).json({ message: "No jobs found" });
   }
 
-  const jobsDetails = await getJobsDetails(jobs);
+  const jobsDetails = await getJobsDetails(jobs,userId);
   res.json(jobsDetails);
 };
 
