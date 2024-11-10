@@ -1,12 +1,7 @@
 const Jobs = require("../models/Jobs");
 const Myjobs = require("../models/Myjobs")
-const City = require("../models/Cities");
-const State = require("../models/States");
-const Dept = require("../models/Department");
-const Comp = require("../models/Company");
-const Shift = require("../models/Shift");
 const User = require('../models/Users')
-
+const jobsController=require('./jobsController')
 // @desc Get all my jobs
 // @route GET /jobs/myjobs
 // @access Private
@@ -18,33 +13,18 @@ const getMyJobs = async (req, res) => {
   // Get all notes from MongoDB
   const myJobs = await Myjobs.find({user:userId}).lean();
 
-  // If no city 
+  // If my job is not exist
   if (!myJobs?.length) {
     return res.status(400).json({ message: "No jobs found" });
   }
 
-  // Add state to each city before sending the response
-  // You could also do this with a for...of loop
   const myjobsDetail = await Promise.all(
     myJobs.map(async (myjob) => {
       const jobs=  await Jobs.findById(myjob.jobId).lean().exec();
-      const comp = await Comp.findById(jobs.company).lean().exec();
-      const city = await City.findById(comp.city).lean().exec();
-      const state = await State.findById(city.state).lean().exec();
-      const dept = await Dept.findById(jobs.department).lean().exec();
-      const shift = await Shift.findById(jobs.shift).lean().exec();
+      const jobsInfo= await jobsController.getjobdetailinfo(jobs)
       return {
         ...myjob,
-        salaryrange:jobs.salaryrange,
-        image:jobs.image,
-        jobtitle:jobs.jobtitle, 
-        match:jobs.match,
-        statename: state.name.substring(0, 2),
-        cityname: city.name,
-        compname: comp.name,
-        compaddress: comp.address,
-        shiftname: shift.title,
-        deptname: dept.name,
+        ...jobsInfo,
       };
     })
   );
@@ -60,7 +40,7 @@ const createInterestedJobs = async (req, res) => {
       jobId,
       userId,
     } = req.body;
-
+    console.log('request',req.body)
     // Confirm data
     if (
       !jobId ||

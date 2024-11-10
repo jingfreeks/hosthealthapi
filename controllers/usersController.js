@@ -52,7 +52,7 @@ const user = await User.create(userObject);
 //create new user
 //post
 const createNewUser = async (req, res) => {
-  const { username, password, roles } = req.body;
+  const { username, password, roles,email } = req.body;
   if (!username || !password) {
     return res
       .status(400)
@@ -72,8 +72,8 @@ const createNewUser = async (req, res) => {
 
   const userObject =
     !Array.isArray(roles) || !roles.length
-      ? { username, password: hashedPwd }
-      : { username, password: hashedPwd, roles };
+      ? { username, password: hashedPwd,email }
+      : { username, password: hashedPwd, roles,email };
   //create user and store a new user
 
   const user = await User.create(userObject);
