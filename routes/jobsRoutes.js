@@ -21,7 +21,7 @@ router
   .delete(jobsController.deleteJobs);
 
 router
-  .route("/details/:jobId")
+  .route("/details/:jobId/:userId")
   .get(jobsController.viewJobDetails)
   .post(myJobsController.createInterestedJobs);
 

@@ -65,6 +65,7 @@ const login = async (req, res) => {
   }
 
   const founUser = await User.findOne({ username }).exec();
+
   if (!founUser || !founUser.active) {
     return res.status(401).json({ message: "Username not found" });
   }
@@ -101,7 +102,7 @@ const login = async (req, res) => {
     sameSite: "None", //cross-site cookie
     maxAge: 7 * 24 * 60 * 60 * 1000, // cookie expiry : set to match rT
   });
-  const usrProfile = await Profile.findOne({ userId:founUser._id }).lean();
+  const usrProfile = await Profile.findOne({ user:founUser._id }).lean();
   res.json({
     accessToken,
     refreshToken,

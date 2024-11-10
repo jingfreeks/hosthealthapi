@@ -1,20 +1,14 @@
 const Jobs = require("../models/Jobs");
-const City = require("../models/Cities");
-const State = require("../models/States");
-const Dept = require("../models/Department");
-const Comp = require("../models/Company");
-const Shift = require("../models/Shift");
-const Myjob = require('../models/Myjobs');
-const Bookmark=require('../models/Bookmark');
+const utilscontroller=require('./utils');
+const User = require("../models/Users");
 
-const getjobdetailinfo = async (job,userId) => {
-  const comp = await Comp.findById(job.company).lean().exec();
-  const city = await City.findById(comp.city).lean().exec();
-  const state = await State.findById(city.state).lean().exec();
-  const dept = await Dept.findById(job.department).lean().exec();
-  const shift = await Shift.findById(job.shift).lean().exec();
-  const myjob = await Myjob.findOne({jobId:job._id}).exec();
-  const bookmark=await Bookmark.findOne({jobId:job._id,user:userId})
+const getjobdetailinfo = async (job) => {
+  const comp = await utilscontroller.getCompanyById(job.company);
+  const city= await utilscontroller.getCityById(comp.city);
+  const state= await utilscontroller.getStateyById(city.state);
+  const dept= await utilscontroller.getDeptyById(job.department);
+  const shift = await utilscontroller.getShiftById(job.shift)
+  
   return {
     ...job,
     statename: state.name.substring(0, 2),
@@ -23,35 +17,44 @@ const getjobdetailinfo = async (job,userId) => {
     compaddress: comp.address,
     shiftname: shift.title,
     deptname: dept.name,
-    status:myjob?.status || 'available',
-    bookmark:bookmark ? true:false
   };
 };
 
-const getJobsDetails = async (jobs,userId) => {
+const getJobsDetails = async (jobs, userId) => {
   return await Promise.all(
     jobs.map(async (job) => {
-      const jdetail = await getjobdetailinfo(job,userId);
-      return jdetail;
+      const jdetail = await getjobdetailinfo(job);
+      const bookmark = await utilscontroller.findBookmarks({ jobId: job._id, user: userId });
+      return { ...jdetail, bookmark: bookmark ? true : false };
     })
   );
 };
 
-// @desc Get all jobs
-// @route GET /jobs
-// @access Private
-const getAllJobs = async (req, res) => {
-  // Get all notes from MongoDB
-
-  const jobs = await Jobs.find().lean();
-  const {userId}=req.params;
-
-  // If no jobs
+const fetchAllJobs=async()=>{
+  // fetch all jobs from MongoDB
+  const jobs = await utilscontroller.findallJobs();
+ 
+  // If jobs is not exist
   if (!jobs?.length) {
     return res.status(400).json({ message: "No jobs found" });
   }
 
-  const jobsDetails = await getJobsDetails(jobs,userId);
+  return jobs
+}
+// @desc Get all jobs
+// @route GET /jobs
+// @access Private
+const getAllJobs = async (req, res) => {
+  
+  const { userId } = req.params;
+  // const jobs = await utilscontroller.findallJobs();
+ 
+  // // If no jobs
+  // if (!jobs?.length) {
+  //   return res.status(400).json({ message: "No jobs found" });
+  // }
+  const jobs = await fetchAllJobs()
+  const jobsDetails = await getJobsDetails(jobs, userId);
   res.json(jobsDetails);
 };
 
@@ -86,23 +89,19 @@ const createNewJobs = async (req, res) => {
     }
 
     // Check for duplicate title
-    const duplicate = await Jobs.findOne({ jobtitle, company: compId })
-      .collation({ locale: "en", strength: 2 })
-      .lean()
-      .exec();
-
+    const duplicate = await utilscontroller.findJobByTitle({ jobtitle, company: compId })
     if (duplicate) {
       return res.status(409).json({ message: "Duplicate Job information" });
     }
 
     // confirm for existing company to create
-    const comp = await Comp.findById(compId).exec();
+    const comp=await utilscontroller.getCompanyById(compId)
     if (!comp) {
       return res.status(400).json({ message: "Company not found in our list" });
     }
 
     // confirm for existing department to create
-    const dept = await Dept.findById(deptId).exec();
+    const dept = await utilscontroller.getDeptyById(deptId)
     if (!dept) {
       return res
         .status(400)
@@ -110,8 +109,7 @@ const createNewJobs = async (req, res) => {
     }
 
     // confirm for existing shift to create
-
-    const shift = await Shift.findById(shiftId).exec();
+    const shift = await utilscontroller.getShiftById(shiftId)
     if (!shift) {
       return res.status(400).json({ message: "Shift  not found in our list" });
     }
@@ -170,7 +168,7 @@ const updateJobs = async (req, res) => {
   }
 
   // confirm for existing department to update
-  const dept = await Dept.findById(deptId).exec();
+  const dept = await utilscontroller.getDeptyById(deptId)
   if (!dept) {
     return res
       .status(400)
@@ -178,22 +176,19 @@ const updateJobs = async (req, res) => {
   }
 
   // confirm for existing shift to update
-
-  const shift = await Shift.findById(shiftId).exec();
+  const shift = await utilscontroller.getShiftById(shiftId)
   if (!shift) {
     return res.status(400).json({ message: "Shift  not found in our list" });
   }
-  // Check for duplicate title
-  const duplicate = await Jobs.findOne({ jobtitle })
-    .collation({ locale: "en", strength: 2 })
-    .lean()
-    .exec();
+
+  const duplicate = await utilscontroller.findJobByTitle({ jobtitle, company: compId })
 
   // Allow renaming of the original note
   if (duplicate && duplicate?._id.toString() !== id) {
     return res.status(409).json({ message: "Duplicate Jobs in the company" });
   }
-  const jobs = await Jobs.findById(id).exec();
+  // const jobs = await Jobs.findById(id).exec();
+  const jobs = await utilscontroller.findJobsById(id);
   if (!jobs) {
     return res.status(400).json({ message: "City not found" });
   }
@@ -224,8 +219,7 @@ const deleteJobs = async (req, res) => {
   //check if this exist to jobs before deleting
 
   // Confirm city exists to delete
-  const jobs = await Jobs.findById(id).exec();
-
+  const jobs = await utilscontroller.findJobsById(id);
   if (!jobs) {
     return res.status(400).json({ message: "City not found" });
   }
@@ -237,18 +231,46 @@ const deleteJobs = async (req, res) => {
   res.json(reply);
 };
 
-const viewJobDetails = async (req, res) => {
-  const { jobId } = req.params;
-
-  const jobs = await Jobs.findById(jobId).exec();
-
+const getJobDetails=async(jobId)=>{
+  const jobs = await utilscontroller.findJobsById(jobId)
+ 
   if (!jobs) {
     return res.status(400).json({ message: "Job is not found in our list" });
   }
+  return await getjobdetailinfo(jobs);
+}
+const viewJobDetails = async (req, res) => {
+  const { jobId,userId } = req.params;
 
-  const jobsDetails = await getjobdetailinfo(jobs);
-  res.json(jobsDetails);
+  // const jobs = await utilscontroller.findJobsById(jobId)
+
+  // if (!jobs) {
+  //   return res.status(400).json({ message: "Job is not found in our list" });
+  // }
+
+  const jobsDetails = await getJobDetails(jobId);
+  const myjob = await utilscontroller.findOneMyJob({ jobId,user:userId })
+  res.json({ ...jobsDetails, status: myjob?.status || "available" });
 };
+const viewUserInfo=async(userId)=>{
+  return await User.findById(userId).exec();
+}
+const viewAdminJobDetails=async(req,res)=>{
+  const { jobId } = req.params;
+  //get the job details
+
+
+  //get interested
+  const jobsList= await utilscontroller.findMyJobsByJobId(jobId)
+  const users=await Promise.all(
+    jobsList.map(async (job) => {
+      const userinfo=await viewUserInfo(job.user)
+      return { userinfo };
+    })
+  );
+  const jobsDetails = await getJobDetails(jobId);
+  res.json({...jobsDetails,interested:users})
+}
 module.exports = {
   getAllJobs,
   createNewJobs,
@@ -256,5 +278,6 @@ module.exports = {
   deleteJobs,
   viewJobDetails,
   getJobsDetails,
-  getjobdetailinfo
+  getjobdetailinfo,
+  viewAdminJobDetails
 };

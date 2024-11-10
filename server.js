@@ -23,6 +23,7 @@ app.use("/", express.static("public"));
 
 app.use("/", require("./routes/root"));
 app.use("/auth", require("./routes/authRoutes"));
+app.use("/admin",require("./routes/adminRoutes"))
 app.use("/users", require("./routes/userRoutes"));
 app.use("/signup", require("./routes/signupRoutes"));
 app.use("/fsignup", require("./routes/firebaseSignupRoutes"));

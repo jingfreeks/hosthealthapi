@@ -8,8 +8,7 @@ const getProfile = async (req, res) => {
 
   const { userId } = req.params;
 
-  const usrProfile = await Profile.findOne({userId}).lean();
-
+  const usrProfile = await Profile.findOne({user:userId}).lean();
   // If no notes
   if (!usrProfile) {
     return res.status(400).json({ message: "No user found" });
