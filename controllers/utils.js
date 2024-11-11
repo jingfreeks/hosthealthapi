@@ -14,7 +14,22 @@ const getCompanyById = async (companyId) => {
 const getCityById = async (cityId) => {
   return await City.findById(cityId).lean().exec();
 };
-
+const getCityInfo = async()=>{
+return await City.aggregate([{
+    $lookup: {
+    from: "states",
+    localField: "state",
+    foreignField: "_id",
+    as: "statename"
+  }},
+  {
+    $addFields: {
+      statename:{
+        $first:"$statename"
+      }
+    }
+  }]).exec()
+}
 const getStateyById = async (stateId) => {
   return await State.findById(stateId).lean().exec();
 };
@@ -60,6 +75,7 @@ const findMyJobsByJobId = async (jobId) => {
 module.exports = {
   getCompanyById,
   getCityById,
+  getCityInfo,
   getStateyById,
   getDeptyById,
   getShiftById,
