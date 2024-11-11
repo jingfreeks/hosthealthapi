@@ -3,6 +3,7 @@ const State = require("../models/States");
 const Company=require("../models/Company")
 const Jobs=require('../models/Jobs')
 const JobsController=require('./jobsController')
+const utilscontroller=require('./utils');
 // @desc Get all city
 // @route GET /city
 // @access Private
@@ -49,20 +50,10 @@ const getAllCities = async (req, res) => {
   if (!cities?.length) {
     return res.status(400).json({ message: "No city found" });
   }
+  
+  const cityInfo=await utilscontroller.getCityInfo()
 
-
-  // Add state to each city before sending the response
-  // You could also do this with a for...of loop
-  const citiesWithStates = await Promise.all(
-    cities.map(async (city) => {
-      const state = await State.findById(city.state).lean().exec();
-      //get matches
-      const matches=await getMatches(city._id)
-
-      return { ...city, statename: state.name,matches,salary:"$2,659" };
-    })
-  );
-  res.json(citiesWithStates);
+  res.json(cityInfo);
 };
 
 // @desc Create new city

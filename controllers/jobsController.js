@@ -1,6 +1,7 @@
 const Jobs = require("../models/Jobs");
 const utilscontroller=require('./utils');
 const User = require("../models/Users");
+const Profile = require('../models/Profile');
 
 const getjobdetailinfo = async (job) => {
   const comp = await utilscontroller.getCompanyById(job.company);
@@ -253,7 +254,7 @@ const viewJobDetails = async (req, res) => {
   res.json({ ...jobsDetails, status: myjob?.status || "available" });
 };
 const viewUserInfo=async(userId)=>{
-  return await User.findById(userId).exec();
+  return await Profile.findOne({user:userId}).lean().exec();
 }
 const viewAdminJobDetails=async(req,res)=>{
   const { jobId } = req.params;
@@ -265,10 +266,11 @@ const viewAdminJobDetails=async(req,res)=>{
   const users=await Promise.all(
     jobsList.map(async (job) => {
       const userinfo=await viewUserInfo(job.user)
-      return { userinfo };
+      return { ...userinfo };
     })
   );
   const jobsDetails = await getJobDetails(jobId);
+ 
   res.json({...jobsDetails,interested:users})
 }
 module.exports = {
