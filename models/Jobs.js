@@ -41,7 +41,7 @@ const jobsSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 jobsSchema.plugin(AutoIncrement, {
   inc_field: "jobOrder",

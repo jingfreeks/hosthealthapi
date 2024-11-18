@@ -15,7 +15,7 @@ router
   .delete(jobsController.deleteJobs);
 router
   .route("/:userId")
-  .get(jobsController.getAllJobs)
+  .get(jobsController.getAllClientJobs)
   .post(jobsController.createNewJobs)
   .patch(jobsController.updateJobs)
   .delete(jobsController.deleteJobs);
@@ -31,6 +31,6 @@ router
   .patch(myJobsController.updateMyStatus)
   .delete(myJobsController.deleteMyJobs);
 
-router.route("/myjobs/:userId").get(myJobsController.getMyJobs);
+router.route("/myjobs/:userId").get(myJobsController.fetchMyJobs);
 
 module.exports = router;

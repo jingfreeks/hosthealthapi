@@ -1,17 +1,19 @@
 const Jobs = require("../models/Jobs");
-const Myjobs = require("../models/Myjobs")
-const User = require('../models/Users')
-const jobsController=require('./jobsController')
+const Myjobs = require("../models/Myjobs");
+const User = require("../models/Users");
+const jobsController = require("./jobsController");
+const utilscontroller = require("./utils");
+
 // @desc Get all my jobs
 // @route GET /jobs/myjobs
 // @access Private
 const getMyJobs = async (req, res) => {
-   const {userId}=req.params;
-  if(!userId){
+  const { userId } = req.params;
+  if (!userId) {
     return res.status(400).json({ message: "User Id should be requried" });
   }
   // Get all notes from MongoDB
-  const myJobs = await Myjobs.find({user:userId}).lean();
+  const myJobs = await Myjobs.find({ user: userId }).lean();
 
   // If my job is not exist
   if (!myJobs?.length) {
@@ -20,8 +22,8 @@ const getMyJobs = async (req, res) => {
 
   const myjobsDetail = await Promise.all(
     myJobs.map(async (myjob) => {
-      const jobs=  await Jobs.findById(myjob.jobId).lean().exec();
-      const jobsInfo= await jobsController.getjobdetailinfo(jobs)
+      const jobs = await Jobs.findById(myjob.jobId).lean().exec();
+      const jobsInfo = await jobsController.getjobdetailinfo(jobs);
       return {
         ...myjob,
         ...jobsInfo,
@@ -31,26 +33,43 @@ const getMyJobs = async (req, res) => {
   res.json(myjobsDetail);
 };
 
+// @desc fetch all my jobs
+// @route GET /jobs/myjobs
+// @access Private
+
+const fetchMyJobs = async (req, res) => {
+  const { userId } = req.params;
+  const myjobs = await utilscontroller.getMyJobs(userId);
+  if (!myjobs?.length) {
+    return res.status(400).json({ message: "No jobs found" });
+  }
+  const result = await Promise.all(myjobs.map(async(jobs)=>{
+    return{
+      ...jobs,
+      jobtitle: jobs?.jobsresult?.jobtitle,
+      weeks: jobs?.jobsresult?.weeks,
+      match: jobs?.jobsresult?.match,
+      salaryrange: jobs?.jobsresult?.salaryrange,
+      jobOrder: jobs?.jobsresult?.jobOrder,
+      image:jobs?.jobsresult?.image,
+    }
+  }))
+  res.json(result);
+};
 // @desc Create new my jobs
 // @route POST /jobs/myjobs
 // @access Private
 const createInterestedJobs = async (req, res) => {
   try {
-    const {
-      jobId,
-      userId,
-    } = req.body;
-    console.log('request',req.body)
+    const { jobId, userId } = req.body;
+    console.log("request", req.body);
     // Confirm data
-    if (
-      !jobId ||
-      !userId
-    ) {
+    if (!jobId || !userId) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
     // Check for duplicate title
-    const duplicate = await Myjobs.findOne({ jobId,user: userId})
+    const duplicate = await Myjobs.findOne({ jobId, user: userId })
       .collation({ locale: "en", strength: 2 })
       .lean()
       .exec();
@@ -68,9 +87,9 @@ const createInterestedJobs = async (req, res) => {
 
     // Create and store the new jobs
     const myjobs = await Myjobs.create({
-        jobId,
-        user:userId,
-        status:'Interested',
+      jobId,
+      user: userId,
+      status: "Interested",
     });
     if (myjobs) {
       // Created
@@ -87,34 +106,24 @@ const createInterestedJobs = async (req, res) => {
 // @route PATCH /jobs/myjob
 // @access Private
 const updateMyStatus = async (req, res) => {
-  const {
-    jobId,
-    userId,
-    status,
-    id,
-  } = req.body;
+  const { jobId, userId, status, id } = req.body;
 
   // Confirm data
-  if (
-    !id ||
-    !jobId ||
-    !userId ||
-    !status
-  ) {
+  if (!id || !jobId || !userId || !status) {
     return res.status(400).json({ message: "All fields are required" });
   }
 
   // confirm for existing Jobs to update
-  const jobs=  await Jobs.findById(jobId).lean().exec();
+  const jobs = await Jobs.findById(jobId).lean().exec();
   if (!jobs) {
     return res.status(400).json({ message: "Job id not found" });
   }
-    // confirm for existing user to create
-const user = await User.findById(userId).exec();
+  // confirm for existing user to create
+  const user = await User.findById(userId).exec();
 
-    if (!user) {
-      res.status(400).json({ message: "User not found" });
-    }
+  if (!user) {
+    res.status(400).json({ message: "User not found" });
+  }
 
   jobs.jobId = image;
   jobs.userId = cityId;
@@ -152,4 +161,10 @@ const deleteMyJobs = async (req, res) => {
   res.json(reply);
 };
 
-module.exports = { getMyJobs,createInterestedJobs,updateMyStatus,deleteMyJobs };
+module.exports = {
+  getMyJobs,
+  createInterestedJobs,
+  updateMyStatus,
+  deleteMyJobs,
+  fetchMyJobs,
+};

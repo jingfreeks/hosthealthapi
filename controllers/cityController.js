@@ -1,47 +1,47 @@
 const City = require("../models/Cities");
 const State = require("../models/States");
-const Company=require("../models/Company")
-const Jobs=require('../models/Jobs')
-const JobsController=require('./jobsController')
-const utilscontroller=require('./utils');
+const Company = require("../models/Company");
+const Jobs = require("../models/Jobs");
+const JobsController = require("./jobsController");
+const utilscontroller = require("./utils");
+
+const getJobMatches = async (companies) => {
+  let matches = 0;
+
+  await Promise.all(
+    companies.map(async (company) => {
+      const jobsList = await Jobs.find({ company: company._id }).count();
+      matches = matches + jobsList;
+    })
+  );
+  return matches;
+};
+const getCompanies = async (id) => {
+  return await Company.find({ city: id }).lean();
+};
+
+const getCitiesByJobs = async (req, res) => {
+  let jobsCity = [];
+  const { cityId } = req.params;
+  const companies = await getCompanies(cityId);
+  await Promise.all(
+    companies.map(async (company) => {
+      const jobslist = await Jobs.find({ company: company._id }).lean();
+      const joblist = await Promise.all(
+        jobslist.map(async (jobslist) => {
+          return JobsController.getjobdetailinfo(jobslist);
+        })
+      );
+      jobsCity = [...jobsCity, ...joblist];
+      // return  JobsController.getjobdetailinfo(jobslist)
+    })
+  );
+  res.json(jobsCity);
+  //get jobs by company
+};
 // @desc Get all city
 // @route GET /city
 // @access Private
-
-const getMatches=async(id)=>{
-  let matches=0;
-  //get company
-  
-  const companies=await getCompanies(id)
-
-  await Promise.all(companies.map(async(company)=>{
-      const jobsList=await Jobs.find({company:company._id}).count()
-      matches=matches + jobsList;
-  }))
-
-  return matches
-}
-
-const getCompanies=async(id)=>{
-  return await Company.find({city:id}).lean()
-}
-
-const getCitiesByJobs=async(req, res)=>{
-  let jobsCity=[];
-  const {cityId}=req.params
-  const companies=await getCompanies(cityId)
-   await Promise.all(companies.map(async(company)=>{
-    const jobslist= await Jobs.find({company:company._id}).lean()
-     const joblist=await Promise.all(jobslist.map(async(jobslist)=>{
-      return JobsController.getjobdetailinfo(jobslist)
-    }
-  ))
-  jobsCity=[...jobsCity,...joblist]
-    // return  JobsController.getjobdetailinfo(jobslist)
-}))
-res.json(jobsCity);
-  //get jobs by company
-}
 const getAllCities = async (req, res) => {
   // Get all notes from MongoDB
   const cities = await City.find().lean();
@@ -50,10 +50,19 @@ const getAllCities = async (req, res) => {
   if (!cities?.length) {
     return res.status(400).json({ message: "No city found" });
   }
-  
-  const cityInfo=await utilscontroller.getCityInfo()
 
-  res.json(cityInfo);
+  const cityInfo = await utilscontroller.getCityInfo();
+  const result = await Promise.all(
+    cityInfo.map(async (item) => {
+      // const matches = await getMatches(item._id);
+      const matches = await getJobMatches(item.companies);
+      return {
+        ...item,
+        matches,
+      };
+    })
+  );
+  res.json(result);
 };
 
 // @desc Create new city
@@ -61,7 +70,7 @@ const getAllCities = async (req, res) => {
 // @access Private
 const createNewCities = async (req, res) => {
   try {
-    const { name,stateId,image } = req.body;
+    const { name, stateId, image } = req.body;
 
     // Confirm data
     if (!name || !stateId || !image) {
@@ -82,7 +91,7 @@ const createNewCities = async (req, res) => {
       return res.status(400).json({ message: "State not found" });
     }
     // Create and store the new city
-    const city = await City.create({ name,state:stateId,image });
+    const city = await City.create({ name, state: stateId, image });
     if (city) {
       // Created
       return res.status(201).json({ message: "New city created" });
@@ -98,7 +107,7 @@ const createNewCities = async (req, res) => {
 // @route PATCH /city
 // @access Private
 const updateCity = async (req, res) => {
-  const { id, name,stateId,image } = req.body;
+  const { id, name, stateId, image } = req.body;
 
   // Confirm data
   if (!id || !name || !stateId || !image) {
@@ -128,8 +137,8 @@ const updateCity = async (req, res) => {
   }
 
   city.name = name;
-  city.state=stateId;
-  city.image =image;
+  city.state = stateId;
+  city.image = image;
   const updatedCity = await city.save();
 
   res.json(`'${updatedCity.name}' city  updated`);
@@ -147,7 +156,7 @@ const deleteCity = async (req, res) => {
   }
 
   //check if this exist to jobs before deleting
-  
+
   // Confirm city exists to delete
   const city = await City.findById(id).exec();
 
@@ -163,9 +172,9 @@ const deleteCity = async (req, res) => {
 };
 
 module.exports = {
-    getAllCities,
-    createNewCities,
-    updateCity,
-    deleteCity,
-    getCitiesByJobs,
+  getAllCities,
+  createNewCities,
+  updateCity,
+  deleteCity,
+  getCitiesByJobs,
 };
