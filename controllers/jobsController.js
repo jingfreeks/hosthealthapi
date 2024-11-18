@@ -1,6 +1,5 @@
 const Jobs = require("../models/Jobs");
 const utilscontroller=require('./utils');
-const User = require("../models/Users");
 const Profile = require('../models/Profile');
 
 const getjobdetailinfo = async (job) => {
@@ -21,20 +20,10 @@ const getjobdetailinfo = async (job) => {
   };
 };
 
-const getJobsDetails = async (jobs, userId) => {
-  return await Promise.all(
-    jobs.map(async (job) => {
-      const jdetail = await getjobdetailinfo(job);
-      const bookmark = await utilscontroller.findBookmarks({ jobId: job._id, user: userId });
-      return { ...jdetail, bookmark: bookmark ? true : false };
-    })
-  );
-};
 
 const fetchAllJobs=async()=>{
   // fetch all jobs from MongoDB
-  const jobs = await utilscontroller.findallJobs();
- 
+  const jobs = await utilscontroller.getAllJobs();
   // If jobs is not exist
   if (!jobs?.length) {
     return res.status(400).json({ message: "No jobs found" });
@@ -46,6 +35,26 @@ const fetchAllJobs=async()=>{
 // @route GET /jobs
 // @access Private
 const getAllJobs = async (req, res) => {
+  const jobs = await fetchAllJobs()
+  res.json(jobs);
+};
+
+// @desc Get bookmark
+
+const getJobsBookMark=async(jobs,userId)=>{
+  return await Promise.all(
+    jobs.map(async (job) => {
+      const bookmark = await utilscontroller.findBookmarks({ jobId: job._id, user: userId });
+      return {...job,bookmark: bookmark ? true : false };
+    })
+  );
+}
+
+// @desc Get all jobs by client
+// @route GET /jobs
+// @access Private
+
+const getAllClientJobs = async (req, res) => {
   
   const { userId } = req.params;
   // const jobs = await utilscontroller.findallJobs();
@@ -55,8 +64,9 @@ const getAllJobs = async (req, res) => {
   //   return res.status(400).json({ message: "No jobs found" });
   // }
   const jobs = await fetchAllJobs()
-  const jobsDetails = await getJobsDetails(jobs, userId);
-  res.json(jobsDetails);
+  const results=await getJobsBookMark(jobs,userId)
+  // const jobsDetails = await getJobsDetails(jobs, userId);
+  res.json(results);
 };
 
 // @desc Create new jobs
@@ -243,12 +253,6 @@ const getJobDetails=async(jobId)=>{
 const viewJobDetails = async (req, res) => {
   const { jobId,userId } = req.params;
 
-  // const jobs = await utilscontroller.findJobsById(jobId)
-
-  // if (!jobs) {
-  //   return res.status(400).json({ message: "Job is not found in our list" });
-  // }
-
   const jobsDetails = await getJobDetails(jobId);
   const myjob = await utilscontroller.findOneMyJob({ jobId,user:userId })
   res.json({ ...jobsDetails, status: myjob?.status || "available" });
@@ -279,7 +283,7 @@ module.exports = {
   updateJobs,
   deleteJobs,
   viewJobDetails,
-  getJobsDetails,
   getjobdetailinfo,
-  viewAdminJobDetails
+  viewAdminJobDetails,
+  getAllClientJobs
 };
