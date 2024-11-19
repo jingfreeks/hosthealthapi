@@ -9,6 +9,6 @@ router
   .get(shiftController.getAllShift)
   .post(shiftController.createNewShift)
   .patch(shiftController.updateShift)
-  .delete(shiftController.deleteCity);
+  .delete(shiftController.deleteShift);
 
 module.exports = router;
