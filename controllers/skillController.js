@@ -1,24 +1,24 @@
-const Shift = require("../models/Shift");
+const Skill = require("../models/Skill");
 
-// @desc Get all shift
-// @route GET /shift
+// @desc Get all skill
+// @route GET /skill
 // @access Private
-const getAllShift = async (req, res) => {
+const getAllSkill = async (req, res) => {
   // Get all notes from MongoDB
-  const shift = await Shift.find().lean();
+  const skill = await Skill.find().lean();
 
   // If no city
-  if (!shift?.length) {
-    return res.status(400).json({ message: "No shift found" });
+  if (!skill?.length) {
+    return res.status(400).json({ message: "No skill found" });
   }
 
-  res.json(shift);
+  res.json(skill);
 };
 
-// @desc Create new shift
-// @route POST /shift
+// @desc Create new skill
+// @route POST /skill
 // @access Private
-const createNewShift = async (req, res) => {
+const createNewSkill = async (req, res) => {
   try {
     const { title } = req.body;
 
@@ -28,32 +28,32 @@ const createNewShift = async (req, res) => {
     }
 
     // Check for duplicate title
-    const duplicate = await Shift.findOne({ title })
+    const duplicate = await Skill.findOne({ title })
       .collation({ locale: "en", strength: 2 })
       .lean()
       .exec();
 
     if (duplicate) {
-      return res.status(409).json({ message: "Duplicate shift title" });
+      return res.status(409).json({ message: "Duplicate skill title" });
     }
 
     // Create and store the new city
-    const city = await Shift.create({ title });
-    if (city) {
+    const skill = await Skill.create({ title });
+    if (skill) {
       // Created
-      return res.status(201).json({ message: "New shift created" });
+      return res.status(201).json({ message: "New skill created" });
     } else {
-      return res.status(400).json({ message: "Invalid shift data received" });
+      return res.status(400).json({ message: "Invalid skill data received" });
     }
   } catch (error) {
     console.log("error", error);
   }
 };
 
-// @desc Update a shift
-// @route PATCH /shift
+// @desc Update a skill
+// @route PATCH /skill
 // @access Private
-const updateShift = async (req, res) => {
+const updateSkill = async (req, res) => {
   const { id, title } = req.body;
 
   // Confirm data
@@ -62,13 +62,13 @@ const updateShift = async (req, res) => {
   }
 
   // Confirm city exists to update
-  const shift = await Shift.findById(id).exec();
-  if (!shift) {
-    return res.status(400).json({ message: "Shift not found" });
+  const skill = await Skill.findById(id).exec();
+  if (!skill) {
+    return res.status(400).json({ message: "Skill not found" });
   }
 
   // Check for duplicate title
-  const duplicate = await Shift.findOne({ title })
+  const duplicate = await Skill.findOne({ title })
     .collation({ locale: "en", strength: 2 })
     .lean()
     .exec();
@@ -78,17 +78,17 @@ const updateShift = async (req, res) => {
     return res.status(409).json({ message: "Duplicate City name" });
   }
 
-  shift.title = title;
+  skill.title = title;
 
   const updatedShift = await shift.save();
 
   res.json(`'${updatedShift.title}' shift  updated`);
 };
 
-// @desc Delete a shift
-// @route DELETE /shift
+// @desc Delete a skill
+// @route DELETE /skill
 // @access Private
-const deleteShift = async (req, res) => {
+const deleteSkill = async (req, res) => {
   const { id } = req.body;
 
   // Confirm data
@@ -99,17 +99,17 @@ const deleteShift = async (req, res) => {
   //check if this exist to jobs before deleting
 
   // Confirm city exists to delete
-  const shift = await Shift.findById(id).exec();
+  const skill = await Skill.findById(id).exec();
 
   if (!shift) {
     return res.status(400).json({ message: "Shift not found" });
   }
 
-  const result = await shift.deleteOne();
+  const result = await skill.deleteOne();
  
   const reply = `Shift '${result.title}' with ID ${result._id} deleted`;
 
   res.json(reply);
 };
 
-module.exports = { getAllShift, createNewShift, updateShift, deleteShift };
+module.exports = { getAllSkill, createNewSkill, updateSkill, deleteSkill };
