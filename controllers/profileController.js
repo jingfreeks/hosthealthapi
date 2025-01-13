@@ -1,7 +1,7 @@
 const Profile = require("../models/Profile");
 
-// @desc Get all notes
-// @route GET /notes
+// @desc Get all profile info
+// @route GET /profile
 // @access Private
 const getProfile = async (req, res) => {
   // Get all notes from MongoDB
@@ -25,8 +25,8 @@ const getProfile = async (req, res) => {
   res.json(profileInfo);
 };
 
-// @desc Create new note
-// @route POST /notes
+// @desc Update  profile info
+// @route PATCH /profile
 // @access Private
 const updateProfile = async (req, res) => {
   const { id, firstName, lastName, middleName,image } = req.body;
