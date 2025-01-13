@@ -20,15 +20,15 @@ const getAllSkill = async (req, res) => {
 // @access Private
 const createNewSkill = async (req, res) => {
   try {
-    const { title } = req.body;
+    const { name } = req.body;
 
     // Confirm data
-    if (!title) {
+    if (!name) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
     // Check for duplicate title
-    const duplicate = await Skill.findOne({ title })
+    const duplicate = await Skill.findOne({ name })
       .collation({ locale: "en", strength: 2 })
       .lean()
       .exec();
@@ -38,7 +38,7 @@ const createNewSkill = async (req, res) => {
     }
 
     // Create and store the new city
-    const skill = await Skill.create({ title });
+    const skill = await Skill.create({ name });
     if (skill) {
       // Created
       return res.status(201).json({ message: "New skill created" });
@@ -54,10 +54,10 @@ const createNewSkill = async (req, res) => {
 // @route PATCH /skill
 // @access Private
 const updateSkill = async (req, res) => {
-  const { id, title } = req.body;
+  const { id, name } = req.body;
 
   // Confirm data
-  if (!id || !title) {
+  if (!id || !name) {
     return res.status(400).json({ message: "All fields are required" });
   }
 
@@ -68,21 +68,21 @@ const updateSkill = async (req, res) => {
   }
 
   // Check for duplicate title
-  const duplicate = await Skill.findOne({ title })
+  const duplicate = await Skill.findOne({ name })
     .collation({ locale: "en", strength: 2 })
     .lean()
     .exec();
 
   // Allow renaming of the original note
   if (duplicate && duplicate?._id.toString() !== id) {
-    return res.status(409).json({ message: "Duplicate City name" });
+    return res.status(409).json({ message: "Duplicate Skill name" });
   }
 
-  skill.title = title;
+  skill.name = name;
 
-  const updatedShift = await shift.save();
+  const updatedShift = await skill.save();
 
-  res.json(`'${updatedShift.title}' shift  updated`);
+  res.json(`'${updatedShift.name}' Skill  updated`);
 };
 
 // @desc Delete a skill
@@ -101,13 +101,13 @@ const deleteSkill = async (req, res) => {
   // Confirm city exists to delete
   const skill = await Skill.findById(id).exec();
 
-  if (!shift) {
+  if (!skill) {
     return res.status(400).json({ message: "Shift not found" });
   }
 
   const result = await skill.deleteOne();
  
-  const reply = `Shift '${result.title}' with ID ${result._id} deleted`;
+  const reply = `Skill '${result.name}' with ID ${result._id} deleted`;
 
   res.json(reply);
 };
