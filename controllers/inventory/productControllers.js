@@ -1,21 +1,21 @@
-const Product = require("../models/Products");
+const Product = require("../../models/Products");
 
-// @desc Get all banks
-// @route GET /banks
+// @desc Get all products
+// @route GET /inv/products
 // @access Private
 const getAllProducts = async (req, res) => {
-  // Get all notes from MongoDB
+  // Get all products from MongoDB
   const product = await Product.find().lean();
 
   // If no city
   if (!product?.length) {
-    return res.status(400).json({ message: "No Product found" });
+    return res.status(400).json({ message: "No Inventory Product found" });
   }
   res.json(product);
 };
 
-// @desc Create new bank
-// @route POST /bank
+// @desc Create new products
+// @route POST /inv/products
 // @access Private
 const createNewProducts = async (req, res) => {
   try {
@@ -33,7 +33,7 @@ const createNewProducts = async (req, res) => {
       .exec();
 
     if (duplicate) {
-      return res.status(409).json({ message: "Duplicate Product name" });
+      return res.status(409).json({ message: "Duplicate Inventory Product name" });
     }
 
     // Create and store the new city
@@ -46,7 +46,7 @@ const createNewProducts = async (req, res) => {
     });
     if (product) {
       // Created
-      return res.status(201).json({ message: "New Product created" });
+      return res.status(201).json({ message: "New Inventory Product created" });
     } else {
       return res.status(400).json({ message: "Invalid Product data received" });
     }
@@ -55,8 +55,8 @@ const createNewProducts = async (req, res) => {
   }
 };
 
-// @desc Update a bank
-// @route PATCH /bank
+// @desc Update a products
+// @route PATCH /inv/products
 // @access Private
 const updateProducts = async (req, res) => {
   const { id, title, decription, category, image, price } = req.body;
@@ -69,7 +69,7 @@ const updateProducts = async (req, res) => {
   const product = await Product.findById(id).exec();
 
   if (!product) {
-    return res.status(400).json({ message: "Product not found" });
+    return res.status(400).json({ message: "Inventory Product not found" });
   }
 
   // Check for duplicate title
@@ -80,7 +80,7 @@ const updateProducts = async (req, res) => {
 
   // Allow renaming of the original note
   if (duplicate && duplicate?._id.toString() !== id) {
-    return res.status(409).json({ message: "Duplicate Bank name" });
+    return res.status(409).json({ message: "Duplicate Inventory Product name" });
   }
 
   product.title = title;
@@ -91,18 +91,18 @@ const updateProducts = async (req, res) => {
 
   const updatedProduct = await bank.save();
 
-  res.json(`'${updatedProduct.name}' Product  updated`);
+  res.json(`'${updatedProduct.name}' Inventory Product  updated`);
 };
 
-// @desc Delete a bank
-// @route DELETE /bank
+// @desc Delete a products
+// @route DELETE /inv/products
 // @access Private
 const deleteProducts = async (req, res) => {
   const { id } = req.body;
 
   // Confirm data
   if (!id) {
-    return res.status(400).json({ message: "Product ID required" });
+    return res.status(400).json({ message: "Inventory Product ID required" });
   }
 
   //check if this exist to jobs before deleting
@@ -111,7 +111,7 @@ const deleteProducts = async (req, res) => {
   const product = await Product.findById(id).exec();
 
   if (!product) {
-    return res.status(400).json({ message: "Bank not found" });
+    return res.status(400).json({ message: "Inventory Product not found" });
   }
 
   const result = await product.deleteOne();
@@ -122,7 +122,7 @@ const deleteProducts = async (req, res) => {
 };
 
 // @desc View product details
-// @route view  /product/{prodId}
+// @route view  /inv/products/{prodId}
 // @access Private
 
 const viewProductDetails=async(req, res)=>{
@@ -131,7 +131,7 @@ const viewProductDetails=async(req, res)=>{
     const product = await Product.findById(prodId).exec();
   
     if (!product) {
-      return res.status(400).json({ message: "Product is not found in our list" });
+      return res.status(400).json({ message: "Inventory Product is not found in our list" });
     }
 
     res.json(product);
