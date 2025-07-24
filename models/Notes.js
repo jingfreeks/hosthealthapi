@@ -1,7 +1,7 @@
-//
+// Notes model
 const mongoose = require("mongoose");
-const AutoIncrement = require("mongoose-sequence")(mongoose);
 
+// Define the schema for notes
 const noteSchema = new mongoose.Schema(
   {
     title: {
@@ -13,17 +13,17 @@ const noteSchema = new mongoose.Schema(
       required: true,
     },
     lat: {
-      type: String,
-      default: false,
+      type: Number,
+      default: null,
     },
     long: {
-      type: String,
-      default: false,
+      type: Number,
+      default: null,
     },
   },
   {
-    timestamps: true,
+    timestamps: true, // Adds createdAt and updatedAt fields
   }
 );
 
-module.exports = mongoose.model("Note", noteSchema);
+module.exports = mongoose.model("Notes", noteSchema);
