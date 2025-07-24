@@ -1,0 +1,48 @@
+const express = require("express");
+const app = express();
+const path = require("path");
+const { logger } = require("./middleware/logger");
+const errorHandler = require("./middleware/errorHandler");
+const cookieParser = require("cookie-parser");
+const cors = require("cors");
+const corsOptions = require("./config/corsOptions");
+
+app.use(logger);
+app.use(cors(corsOptions));
+app.use(express.json());
+app.use(cookieParser());
+app.use("/", express.static("public"));
+
+app.use("/", require("./routes/root"));
+app.use("/auth", require("./routes/authRoutes"));
+app.use("/users", require("./routes/userRoutes"));
+app.use("/signup", require("./routes/signupRoutes"));
+app.use("/fsignup", require("./routes/firebaseSignupRoutes"));
+app.use("/notes", require("./routes/notesRoutes"));
+app.use("/states", require("./routes/stateRoutes"));
+app.use("/city", require("./routes/cityRoutes"));
+app.use("/dept", require("./routes/deptRoutes"));
+app.use("/company", require("./routes/companyRoutes"));
+app.use("/shift", require("./routes/shiftRoutes"));
+app.use("/jobs", require("./routes/jobsRoutes"));
+app.use("/profile", require("./routes/profileRoutes"));
+app.use("/bank", require("./routes/bankRoutes"));
+app.use("/product", require("./routes/productRoutes"));
+app.use("/upload", require("./routes/uploadRoutes"));
+app.use("/onboarding", require("./routes/onBoardingRoutes"));
+app.use(express.static('./public'));
+
+app.all("*", (req, res) => {
+  res.status(404);
+  if (req.accepts("html")) {
+    res.sendFile(path.join(__dirname, "views", "404.html"));
+  } else if (req.accepts("json")) {
+    res.json({ message: "404 not found" });
+  } else {
+    res.type("txt").send("404 not found");
+  }
+});
+
+app.use(errorHandler);
+
+module.exports = app; 

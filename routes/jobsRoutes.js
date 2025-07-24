@@ -1,11 +1,16 @@
 const express = require("express");
 const router = express.Router();
-const dynamic_path = express();
 const jobsController = require("../controllers/jobsController");
 const myJobsController = require("../controllers/myjobsController");
 const verifyJWT = require("../middleware/verifyJWT");
 
+// Middleware to verify JWT for all /jobs routes
 router.use(verifyJWT);
+
+// @route GET /jobs - Get all jobs
+// @route POST /jobs - Create new job
+// @route PATCH /jobs - Update a job
+// @route DELETE /jobs - Delete a job
 router
   .route("/")
   .get(jobsController.getAllJobs)
@@ -13,13 +18,19 @@ router
   .patch(jobsController.updateJobs)
   .delete(jobsController.deleteJobs);
 
-router.route("/:jobId").get(jobsController.viewJobDetails)
-router.route("/myjobs/:userId").get(myJobsController.getMyJobs)
+// @route GET /jobs/:jobId - View job details
+router.route("/:jobId").get(jobsController.viewJobDetails);
 
+// @route GET /jobs/myjobs/:userId - Get jobs for a user
+router.route("/myjobs/:userId").get(myJobsController.getMyJobs);
+
+// @route POST /jobs/myjobs - Create interested job
+// @route PATCH /jobs/myjobs - Update job status
+// @route DELETE /jobs/myjobs - Delete job
 router
   .route("/myjobs")
-  // .get(myJobsController.getMyJobs)
   .post(myJobsController.createInterestedJobs)
   .patch(myJobsController.updateMyStatus)
   .delete(myJobsController.deleteMyJobs);
+
 module.exports = router;

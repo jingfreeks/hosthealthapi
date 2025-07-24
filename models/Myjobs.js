@@ -1,6 +1,8 @@
+// MyJob model
 const mongoose = require("mongoose");
 
-const myJobsSchema = new mongoose.Schema(
+// Define the schema for a user's job
+const myJobSchema = new mongoose.Schema(
   {
     jobId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -15,11 +17,12 @@ const myJobsSchema = new mongoose.Schema(
     status: {
       type: String,
       required: true,
+      trim: true,
     },
   },
   {
-    timestamps: true,
+    timestamps: true, // Adds createdAt and updatedAt fields
   }
 );
 
-module.exports = mongoose.model("Myjobs", myJobsSchema);
+module.exports = mongoose.model("MyJob", myJobSchema);
