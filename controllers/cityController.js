@@ -47,7 +47,7 @@ const getAllCities = async (req, res) => {
     cities.map(async (city) => {
       const state = await State.findById(city.state).lean().exec();
       const matches = await getMatches(city._id);
-      return { ...city, statename: state.name, matches, salary: "$2,659" };
+      return { ...city,stateId:state._id, statename: state.name, matches, salary: "$2,659" };
     })
   );
   res.json(citiesWithStates);
@@ -59,6 +59,7 @@ const getAllCities = async (req, res) => {
 const createNewCities = async (req, res) => {
   try {
     const { name, stateId, image } = req.body;
+    console.log("createNewCities", req.body);
     if (!name || !stateId || !image) {
       return res.status(400).json({ message: "All fields are required" });
     }
@@ -118,11 +119,11 @@ const updateCity = async (req, res) => {
 // @route DELETE /city
 // @access Private
 const deleteCity = async (req, res) => {
-  const { id } = req.body;
-  if (!id) {
+  const { _id } = req.body;
+  if (!_id) {
     return res.status(400).json({ message: "City ID required" });
   }
-  const city = await City.findById(id).exec();
+  const city = await City.findById(_id).exec();
   if (!city) {
     return res.status(400).json({ message: "City not found" });
   }

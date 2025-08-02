@@ -42,11 +42,12 @@ const createNewBanks = async (req, res) => {
 // @route PATCH /bank
 // @access Private
 const updateBank = async (req, res) => {
-  const { id, name, address } = req.body;
-  if (!id || !name) {
+  const { _id, name, address } = req.body;
+  console.log("updateBank", req.body);
+  if (!_id || !name) {
     return res.status(400).json({ message: "All fields are required" });
   }
-  const bank = await Bank.findById(id).exec();
+  const bank = await Bank.findById(_id).exec();
   if (!bank) {
     return res.status(400).json({ message: "Bank not found" });
   }
@@ -54,7 +55,7 @@ const updateBank = async (req, res) => {
     .collation({ locale: "en", strength: 2 })
     .lean()
     .exec();
-  if (duplicate && duplicate?._id.toString() !== id) {
+  if (duplicate && duplicate?._id.toString() !== _id) {
     return res.status(409).json({ message: "Duplicate Bank name" });
   }
   bank.name = name;
@@ -67,11 +68,11 @@ const updateBank = async (req, res) => {
 // @route DELETE /bank
 // @access Private
 const deleteBank = async (req, res) => {
-  const { id } = req.body;
-  if (!id) {
+  const { _id } = req.body;
+  if (!_id) {
     return res.status(400).json({ message: "Bank ID required" });
   }
-  const bank = await Bank.findById(id).exec();
+  const bank = await Bank.findById(_id).exec();
   if (!bank) {
     return res.status(400).json({ message: "Bank not found" });
   }
