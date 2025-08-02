@@ -53,6 +53,7 @@ const login = async (req, res) => {
     return res.status(400).json({ message: "All fields are required", error: true });
   }
   const founUser = await User.findOne({ username }).exec();
+
   if (!founUser || !founUser.active) {
     return res.status(401).json({ message: "Username not found" });
   }

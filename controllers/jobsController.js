@@ -3,12 +3,8 @@
  * @module controllers/jobsController
  */
 const Jobs = require("../models/Jobs");
-const City = require("../models/Cities");
-const State = require("../models/States");
-const Dept = require("../models/Department");
-const Comp = require("../models/Company");
-const Shift = require("../models/Shift");
-const Myjob = require('../models/Myjobs');
+const utilscontroller=require('./utils');
+const Profile = require('../models/Profile');
 
 /**
  * Get detailed info for a single job
