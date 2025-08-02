@@ -1,59 +1,70 @@
+/**
+ * Controller for Profile operations
+ * @module controllers/profileController
+ */
 const Profile = require("../models/Profile");
 
-// @desc Get all profile info
-// @route GET /profile
-// @access Private
+/**
+ * Get profile info for a user
+ * @route GET /profile/:userId
+ * @access Private
+ */
 const getProfile = async (req, res) => {
-  // Get all notes from MongoDB
-
-  const { userId } = req.params;
-
-  const usrProfile = await Profile.findOne({user:userId}).lean();
-  // If no notes
-  if (!usrProfile) {
-    return res.status(400).json({ message: "No user found" });
+  try {
+    const { userId } = req.params;
+    if (!userId) {
+      return res.status(400).json({ message: "User ID required" });
+    }
+    const usrProfile = await Profile.findOne({ user: userId }).lean().exec();
+    if (!usrProfile) {
+      return res.status(400).json({ message: "No user found" });
+    }
+    const profileInfo = {
+      firstName: usrProfile.firstname,
+      lastName: usrProfile.lastname,
+      middlename: usrProfile.middlename,
+      picture: usrProfile.picture,
+    };
+    return res.json(profileInfo);
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", error: error.message });
   }
-
-  //get the return profile info
-  const profileInfo = {
-    firstName: usrProfile.firstname,
-    lastName: usrProfile.lastname,
-    middlename: usrProfile.middlename,
-    picture:usrProfile.picture,
-  };
-
-  res.json(profileInfo);
 };
 
-// @desc Update  profile info
-// @route PATCH /profile
-// @access Private
+/**
+ * Create or update a user profile
+ * @route PATCH /profile/:userId
+ * @access Private
+ */
 const updateProfile = async (req, res) => {
-  const { id, firstName, lastName, middleName,image } = req.body;
-  const { userId } = req.params;
-
-  const user = await Profile.findOne({user:userId}).lean().exec();
-
-  if (!user) {
-    const userObject={
-      firstname:firstName,
-      lastname:lastName,
-      middlename:middleName,
-      user:userId,
-      picture:image
+  try {
+    const { firstName, lastName, middleName, image } = req.body;
+    const { userId } = req.params;
+    if (!userId || !firstName || !lastName) {
+      return res.status(400).json({ message: "All fields are required" });
     }
-    await Profile.create(userObject);
-  }else{
-    const users = await Profile.findById(user._id).exec();
-    users.firstname = firstName;
-    users.lastname = lastName;
-    users.middlename = middleName;
-    users.picture=image;
-    await users.save();
+    let user = await Profile.findOne({ user: userId }).lean().exec();
+    if (!user) {
+      const userObject = {
+        firstname: firstName,
+        lastname: lastName,
+        middlename: middleName,
+        user: userId,
+        picture: image,
+      };
+      await Profile.create(userObject);
+    } else {
+      const users = await Profile.findById(user._id).exec();
+      users.firstname = firstName;
+      users.lastname = lastName;
+      users.middlename = middleName;
+      users.picture = image;
+      await users.save();
+    }
+    return res.json({ message: `profile updated` });
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", error: error.message });
   }
-
-  //check for duplicate
-  res.json({ message: `profile updated` });
 };
 
 module.exports = {

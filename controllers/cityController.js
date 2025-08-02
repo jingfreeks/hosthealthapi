@@ -1,68 +1,56 @@
 const City = require("../models/Cities");
 const State = require("../models/States");
 const Company = require("../models/Company");
-const Jobs = require("../models/Jobs");
-const JobsController = require("./jobsController");
-const utilscontroller = require("./utils");
+const Jobs = require('../models/Jobs');
+const JobsController = require('./jobsController');
 
-const getJobMatches = async (companies) => {
+// Helper: Get number of jobs for companies in a city
+const getMatches = async (id) => {
   let matches = 0;
-
-  await Promise.all(
-    companies.map(async (company) => {
-      const jobsList = await Jobs.find({ company: company._id }).count();
-      matches = matches + jobsList;
-    })
-  );
+  const companies = await getCompanies(id);
+  await Promise.all(companies.map(async (company) => {
+    const jobsList = await Jobs.find({ company: company._id }).count();
+    matches = matches + jobsList;
+  }));
   return matches;
 };
+
+// Helper: Get companies in a city
 const getCompanies = async (id) => {
   return await Company.find({ city: id }).lean();
 };
 
+// @desc Get jobs by city
+// @route GET /city/:cityId
+// @access Private
 const getCitiesByJobs = async (req, res) => {
   let jobsCity = [];
   const { cityId } = req.params;
   const companies = await getCompanies(cityId);
-  await Promise.all(
-    companies.map(async (company) => {
-      const jobslist = await Jobs.find({ company: company._id }).lean();
-      const joblist = await Promise.all(
-        jobslist.map(async (jobslist) => {
-          return JobsController.getjobdetailinfo(jobslist);
-        })
-      );
-      jobsCity = [...jobsCity, ...joblist];
-      // return  JobsController.getjobdetailinfo(jobslist)
-    })
-  );
+  await Promise.all(companies.map(async (company) => {
+    const jobslist = await Jobs.find({ company: company._id }).lean();
+    const joblist = await Promise.all(jobslist.map(async (job) => JobsController.getjobdetailinfo(job)));
+    jobsCity = [...jobsCity, ...joblist];
+  }));
   res.json(jobsCity);
-  //get jobs by company
 };
-// @desc Get all city
+
+// @desc Get all cities
 // @route GET /city
 // @access Private
 const getAllCities = async (req, res) => {
-  // Get all notes from MongoDB
   const cities = await City.find().lean();
-
-  // If no city
   if (!cities?.length) {
     return res.status(400).json({ message: "No city found" });
   }
-
-  const cityInfo = await utilscontroller.getCityInfo();
-  const result = await Promise.all(
-    cityInfo.map(async (item) => {
-      // const matches = await getMatches(item._id);
-      const matches = await getJobMatches(item.companies);
-      return {
-        ...item,
-        matches,
-      };
+  const citiesWithStates = await Promise.all(
+    cities.map(async (city) => {
+      const state = await State.findById(city.state).lean().exec();
+      const matches = await getMatches(city._id);
+      return { ...city,stateId:state._id, statename: state.name, matches, salary: "$2,659" };
     })
   );
-  res.json(result);
+  res.json(citiesWithStates);
 };
 
 // @desc Create new city
@@ -71,18 +59,14 @@ const getAllCities = async (req, res) => {
 const createNewCities = async (req, res) => {
   try {
     const { name, stateId, image } = req.body;
-
-    // Confirm data
+    console.log("createNewCities", req.body);
     if (!name || !stateId || !image) {
       return res.status(400).json({ message: "All fields are required" });
     }
-
-    // Check for duplicate title
     const duplicate = await City.findOne({ name })
       .collation({ locale: "en", strength: 2 })
       .lean()
       .exec();
-
     if (duplicate) {
       return res.status(409).json({ message: "Duplicate city name" });
     }
@@ -90,10 +74,8 @@ const createNewCities = async (req, res) => {
     if (!state) {
       return res.status(400).json({ message: "State not found" });
     }
-    // Create and store the new city
     const city = await City.create({ name, state: stateId, image });
     if (city) {
-      // Created
       return res.status(201).json({ message: "New city created" });
     } else {
       return res.status(400).json({ message: "Invalid city data received" });
@@ -108,66 +90,45 @@ const createNewCities = async (req, res) => {
 // @access Private
 const updateCity = async (req, res) => {
   const { id, name, stateId, image } = req.body;
-
-  // Confirm data
   if (!id || !name || !stateId || !image) {
     return res.status(400).json({ message: "All fields are required" });
   }
-
-  // Confirm city exists to update
   const state = await State.findById(stateId).exec();
   if (!state) {
     return res.status(400).json({ message: "State not found" });
   }
   const city = await City.findById(id).exec();
-
   if (!city) {
     return res.status(400).json({ message: "City not found" });
   }
-
-  // Check for duplicate title
   const duplicate = await City.findOne({ name })
     .collation({ locale: "en", strength: 2 })
     .lean()
     .exec();
-
-  // Allow renaming of the original note
   if (duplicate && duplicate?._id.toString() !== id) {
     return res.status(409).json({ message: "Duplicate City name" });
   }
-
   city.name = name;
   city.state = stateId;
   city.image = image;
   const updatedCity = await city.save();
-
-  res.json(`'${updatedCity.name}' city  updated`);
+  res.json(`'${updatedCity.name}' city updated`);
 };
 
 // @desc Delete a city
 // @route DELETE /city
 // @access Private
 const deleteCity = async (req, res) => {
-  const { id } = req.body;
-
-  // Confirm data
-  if (!id) {
+  const { _id } = req.body;
+  if (!_id) {
     return res.status(400).json({ message: "City ID required" });
   }
-
-  //check if this exist to jobs before deleting
-
-  // Confirm city exists to delete
-  const city = await City.findById(id).exec();
-
+  const city = await City.findById(_id).exec();
   if (!city) {
     return res.status(400).json({ message: "City not found" });
   }
-
   const result = await city.deleteOne();
-
   const reply = `City '${result.name}' with ID ${result._id} deleted`;
-
   res.json(reply);
 };
 

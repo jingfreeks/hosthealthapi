@@ -5,8 +5,13 @@ const myJobsController = require("../controllers/myjobsController");
 const jobsBookmarkController = require("../controllers/bookmarksController");
 const verifyJWT = require("../middleware/verifyJWT");
 
+// Middleware to verify JWT for all /jobs routes
 router.use(verifyJWT);
-router.route("/jobbookmark").post(jobsBookmarkController.addRemoveBookMarks);
+
+// @route GET /jobs - Get all jobs
+// @route POST /jobs - Create new job
+// @route PATCH /jobs - Update a job
+// @route DELETE /jobs - Delete a job
 router
   .route("/")
   .get(jobsController.getAllJobs)
@@ -20,17 +25,19 @@ router
   .patch(jobsController.updateJobs)
   .delete(jobsController.deleteJobs);
 
-router
-  .route("/details/:jobId/:userId")
-  .get(jobsController.viewJobDetails)
-  .post(myJobsController.createInterestedJobs);
+// @route GET /jobs/:jobId - View job details
+router.route("/:jobId").get(jobsController.viewJobDetails);
 
+// @route GET /jobs/myjobs/:userId - Get jobs for a user
+router.route("/myjobs/:userId").get(myJobsController.getMyJobs);
+
+// @route POST /jobs/myjobs - Create interested job
+// @route PATCH /jobs/myjobs - Update job status
+// @route DELETE /jobs/myjobs - Delete job
 router
   .route("/myjobs")
   .post(myJobsController.createInterestedJobs)
   .patch(myJobsController.updateMyStatus)
   .delete(myJobsController.deleteMyJobs);
-
-router.route("/myjobs/:userId").get(myJobsController.fetchMyJobs);
 
 module.exports = router;

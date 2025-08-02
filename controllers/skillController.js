@@ -54,15 +54,15 @@ const createNewSkill = async (req, res) => {
 // @route PATCH /skill
 // @access Private
 const updateSkill = async (req, res) => {
-  const { id, name } = req.body;
+  const { _id, name } = req.body;
 
   // Confirm data
-  if (!id || !name) {
+  if (!_id || !name) {
     return res.status(400).json({ message: "All fields are required" });
   }
 
   // Confirm city exists to update
-  const skill = await Skill.findById(id).exec();
+  const skill = await Skill.findById(_id).exec();
   if (!skill) {
     return res.status(400).json({ message: "Skill not found" });
   }
@@ -74,7 +74,7 @@ const updateSkill = async (req, res) => {
     .exec();
 
   // Allow renaming of the original note
-  if (duplicate && duplicate?._id.toString() !== id) {
+  if (duplicate && duplicate?._id.toString() !== _id) {
     return res.status(409).json({ message: "Duplicate Skill name" });
   }
 
@@ -89,17 +89,17 @@ const updateSkill = async (req, res) => {
 // @route DELETE /skill
 // @access Private
 const deleteSkill = async (req, res) => {
-  const { id } = req.body;
+  const { _id } = req.body;
 
   // Confirm data
-  if (!id) {
+  if (!_id) {
     return res.status(400).json({ message: "Shift ID required" });
   }
 
   //check if this exist to jobs before deleting
 
   // Confirm city exists to delete
-  const skill = await Skill.findById(id).exec();
+  const skill = await Skill.findById(_id).exec();
 
   if (!skill) {
     return res.status(400).json({ message: "Shift not found" });

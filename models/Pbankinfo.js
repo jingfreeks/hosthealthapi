@@ -1,13 +1,16 @@
+// ProfileBankInfo model
 const mongoose = require("mongoose");
 
-const pbankInfoSchema = new mongoose.Schema({
+// Define the schema for a user's bank info
+const profileBankInfoSchema = new mongoose.Schema({
   accountNo: {
     type: Number,
     required: true,
   },
-  accountName:{
-    type:String,
+  accountName: {
+    type: String,
     required: true,
+    trim: true,
   },
   bank: {
     type: mongoose.Schema.Types.ObjectId,
@@ -19,6 +22,8 @@ const pbankInfoSchema = new mongoose.Schema({
     ref: "Users",
     required: true,
   },
+}, {
+  timestamps: true, // Adds createdAt and updatedAt fields
 });
 
-module.exports = mongoose.model("ProfileBankInfos", pbankInfoSchema);
+module.exports = mongoose.model("ProfileBankInfo", profileBankInfoSchema);
