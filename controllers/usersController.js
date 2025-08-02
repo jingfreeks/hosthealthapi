@@ -81,7 +81,7 @@ const createNewUser = async (req, res) => {
     const userObject =
       !Array.isArray(roles) || !roles.length
         ? {email, username, password: hashedPwd }
-        : { emailusername, password: hashedPwd, roles };
+        : { email, username, password: hashedPwd, roles };
     const user = await User.create(userObject);
     if (user) {
       return res.status(201).json({ message: `New user ${username} created` });

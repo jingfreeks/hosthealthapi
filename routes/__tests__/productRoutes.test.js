@@ -2,7 +2,7 @@ const request = require('supertest');
 const app = require('../../app');
 
 // Mock productController.getAllProducts to return a dummy response
-jest.mock('../../controllers/productControllers', () => ({
+jest.mock('../../controllers/inventory/productControllers', () => ({
   getAllProducts: (req, res) => res.status(200).json([{ title: 'Test Product' }]),
   createNewProducts: jest.fn(),
   updateProducts: jest.fn(),

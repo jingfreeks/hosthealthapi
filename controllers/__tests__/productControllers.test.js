@@ -1,4 +1,4 @@
-const productControllers = require('../productControllers');
+const productControllers = require('../inventory/productControllers');
 jest.mock('../../models/Products');
 const Product = require('../../models/Products');
 
@@ -48,7 +48,7 @@ describe('productControllers', () => {
       const res = mockRes();
       await productControllers.createNewProducts(req, res);
       expect(res.status).toHaveBeenCalledWith(409);
-      expect(res.json).toHaveBeenCalledWith({ message: 'Duplicate Product name' });
+      expect(res.json).toHaveBeenCalledWith({ message: 'Duplicate Inventory Product name' });
     });
     it('should create a new product', async () => {
       Product.findOne.mockReturnValueOnce({
@@ -134,7 +134,7 @@ describe('productControllers', () => {
       const res = mockRes();
       await productControllers.viewProductDetails(req, res);
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({ message: 'Product is not found in our list' });
+      expect(res.json).toHaveBeenCalledWith({ message: 'Inventory Product is not found in our list' });
     });
     it('should return product details', async () => {
       Product.findById.mockReturnValueOnce({ exec: jest.fn().mockResolvedValueOnce({ title: 'Product1', _id: '1' }) });

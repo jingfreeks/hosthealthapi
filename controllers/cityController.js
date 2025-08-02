@@ -50,7 +50,7 @@ const getAllCities = async (req, res) => {
       return { ...city,stateId:state._id, statename: state.name, matches, salary: "$2,659" };
     })
   );
-  res.json(result);
+  res.json(citiesWithStates);
 };
 
 // @desc Create new city

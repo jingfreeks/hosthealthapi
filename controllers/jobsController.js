@@ -3,6 +3,12 @@
  * @module controllers/jobsController
  */
 const Jobs = require("../models/Jobs");
+const Comp = require("../models/Company");
+const City = require("../models/Cities");
+const State = require("../models/States");
+const Dept = require("../models/Department");
+const Shift = require("../models/Shift");
+const Myjob = require("../models/Myjobs");
 const utilscontroller=require('./utils');
 const Profile = require('../models/Profile');
 
@@ -209,12 +215,52 @@ const viewJobDetails = async (req, res) => {
   }
 };
 
+/**
+ * View admin job details
+ * @route GET /admin/jobDetails/:jobId
+ * @access Private
+ */
+const viewAdminJobDetails = async (req, res) => {
+  try {
+    const { jobId } = req.params;
+    const jobs = await Jobs.findById(jobId).exec();
+    if (!jobs) {
+      return res.status(400).json({ message: "Job is not found in our list" });
+    }
+    const jobsDetails = await getjobdetailinfo(jobs);
+    return res.json(jobsDetails);
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+/**
+ * Get all jobs for a specific client/user
+ * @route GET /jobs/:userId
+ * @access Private
+ */
+const getAllClientJobs = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const jobs = await Jobs.find().lean().exec();
+    if (!jobs?.length) {
+      return res.status(400).json({ message: "No jobs found" });
+    }
+    const jobsDetails = await getJobsDetails(jobs);
+    return res.json(jobsDetails);
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 module.exports = {
   getAllJobs,
+  getAllClientJobs,
   createNewJobs,
   updateJobs,
   deleteJobs,
   viewJobDetails,
+  viewAdminJobDetails,
   getJobsDetails,
   getjobdetailinfo,
 };

@@ -25,7 +25,7 @@ const fLogin = async (req, res) => {
       },
     },
     process.env.ACCESS_TOKEN_SECRET,
-    { expiresIn: "10m" }
+    { expiresIn: process.env.NODE_ENV === 'production' ? "10m" : "1h" }
   );
   const refreshToken = jwt.sign(
     {
@@ -36,8 +36,8 @@ const fLogin = async (req, res) => {
   );
   res.cookie("jwt", refreshToken, {
     httpOnly: true,
-    secure: true,
-    sameSite: "None",
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? "None" : "Lax",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
   res.json({ accessToken, userId: founUser._id });
@@ -67,7 +67,7 @@ const login = async (req, res) => {
       },
     },
     process.env.ACCESS_TOKEN_SECRET,
-    { expiresIn: "15m" }
+    { expiresIn: process.env.NODE_ENV === 'production' ? "15m" : "1h" }
   );
   const refreshToken = jwt.sign(
     {
@@ -78,8 +78,8 @@ const login = async (req, res) => {
   );
   res.cookie("jwt", refreshToken, {
     httpOnly: true,
-    secure: true,
-    sameSite: "None",
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? "None" : "Lax",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
   const usrProfile = await Profile.findOne({ userId: founUser._id }).lean();

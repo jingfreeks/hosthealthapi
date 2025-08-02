@@ -2,7 +2,7 @@
  * Controller for Product operations
  * @module controllers/productControllers
  */
-const Product = require("../models/Products");
+const Product = require("../../models/Products");
 
 /**
  * Get all products
