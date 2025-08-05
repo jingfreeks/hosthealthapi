@@ -75,7 +75,7 @@ describe('stateController', () => {
     });
     it('should return 400 if state not found', async () => {
       State.findById.mockReturnValueOnce({ exec: jest.fn().mockResolvedValueOnce(null) });
-      const req = { body: { id: '1', name: 'State1' } };
+      const req = { body: { _id: '1', name: 'State1' } };
       const res = mockRes();
       await stateController.updateState(req, res);
       expect(res.status).toHaveBeenCalledWith(400);
@@ -86,7 +86,7 @@ describe('stateController', () => {
       State.findOne.mockReturnValueOnce({
         collation: () => ({ lean: () => ({ exec: jest.fn().mockResolvedValueOnce({ _id: '2', name: 'State1' }) }) })
       });
-      const req = { body: { id: '1', name: 'State1' } };
+      const req = { body: { _id: '1', name: 'State1' } };
       const res = mockRes();
       await stateController.updateState(req, res);
       expect(res.status).toHaveBeenCalledWith(409);
@@ -97,7 +97,7 @@ describe('stateController', () => {
       State.findOne.mockReturnValueOnce({
         collation: () => ({ lean: () => ({ exec: jest.fn().mockResolvedValueOnce(null) }) })
       });
-      const req = { body: { id: '1', name: 'State1' } };
+      const req = { body: { _id: '1', name: 'State1' } };
       const res = mockRes();
       await stateController.updateState(req, res);
       expect(res.json).toHaveBeenCalledWith(`'State1' updated`);
@@ -114,7 +114,7 @@ describe('stateController', () => {
     });
     it('should return 400 if state not found', async () => {
       State.findById.mockReturnValueOnce({ exec: jest.fn().mockResolvedValueOnce(null) });
-      const req = { body: { id: '1' } };
+      const req = { body: { _id: '1' } };
       const res = mockRes();
       await stateController.deleteState(req, res);
       expect(res.status).toHaveBeenCalledWith(400);
@@ -125,7 +125,7 @@ describe('stateController', () => {
       City.findOne.mockReturnValueOnce({
         collation: () => ({ lean: () => ({ exec: jest.fn().mockResolvedValueOnce({ state: '1' }) }) })
       });
-      const req = { body: { id: '1' } };
+      const req = { body: { _id: '1' } };
       const res = mockRes();
       await stateController.deleteState(req, res);
       expect(res.status).toHaveBeenCalledWith(400);
@@ -136,7 +136,7 @@ describe('stateController', () => {
       City.findOne.mockReturnValueOnce({
         collation: () => ({ lean: () => ({ exec: jest.fn().mockResolvedValueOnce(null) }) })
       });
-      const req = { body: { id: '1' } };
+      const req = { body: { _id: '1' } };
       const res = mockRes();
       await stateController.deleteState(req, res);
       expect(res.json).toHaveBeenCalledWith(`City 'State1' with ID 1 deleted`);

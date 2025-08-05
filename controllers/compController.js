@@ -23,6 +23,7 @@ const getAllCompanies = async (req, res) => {
         const state = city ? await State.findById(city.state).lean().exec() : null;
         return {
           ...company,
+          cityId: city ? city._id : undefined,
           cityname: city ? city.name : undefined,
           state: state ? state.name.substring(0, 2).toUpperCase() : undefined,
         };
@@ -70,11 +71,11 @@ const createNewCompany = async (req, res) => {
  */
 const updateCompany = async (req, res) => {
   try {
-    const { id, name, address, cityId } = req.body;
-    if (!id || !name || !address || !cityId) {
+    const { _id, name, address, cityId } = req.body;
+    if (!_id || !name || !address || !cityId) {
       return res.status(400).json({ message: "All fields are required" });
     }
-    const company = await Company.findById(id).exec();
+    const company = await Company.findById(_id).exec();
     if (!company) {
       return res.status(400).json({ message: "Company not found" });
     }
@@ -86,7 +87,7 @@ const updateCompany = async (req, res) => {
       .collation({ locale: "en", strength: 2 })
       .lean()
       .exec();
-    if (duplicate && duplicate?._id.toString() !== id) {
+    if (duplicate && duplicate?._id.toString() !== _id) {
       return res.status(409).json({ message: "Duplicate company information" });
     }
     company.name = name;
@@ -106,11 +107,11 @@ const updateCompany = async (req, res) => {
  */
 const deleteCompany = async (req, res) => {
   try {
-    const { id } = req.body;
-    if (!id) {
+    const { _id } = req.body;
+    if (!_id) {
       return res.status(400).json({ message: "Company ID required" });
     }
-    const company = await Company.findById(id).exec();
+    const company = await Company.findById(_id).exec();
     if (!company) {
       return res.status(400).json({ message: "Company not found" });
     }

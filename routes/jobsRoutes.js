@@ -25,6 +25,15 @@ router
   .patch(jobsController.updateJobs)
   .delete(jobsController.deleteJobs);
 
+// @route GET /jobs/status/:status - Get jobs by status
+router.route("/status/:status").get(jobsController.getJobsByStatus);
+
+// @route GET /jobs/type/:jobType - Get jobs by type
+router.route("/type/:jobType").get(jobsController.getJobsByType);
+
+// @route GET /jobs/match/:minMatchPercentage - Get jobs by skill match
+router.route("/match/:minMatchPercentage").get(jobsController.getJobsBySkillMatch);
+
 // @route GET /jobs/:jobId - View job details
 router.route("/:jobId").get(jobsController.viewJobDetails);
 
