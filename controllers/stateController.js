@@ -58,11 +58,11 @@ const createNewStates = async (req, res) => {
  */
 const updateState = async (req, res) => {
   try {
-    const { id, name } = req.body;
-    if (!id || !name) {
+    const { _id, name } = req.body;
+    if (!_id || !name) {
       return res.status(400).json({ message: "All fields are required" });
     }
-    const state = await State.findById(id).exec();
+    const state = await State.findById(_id).exec();
     if (!state) {
       return res.status(400).json({ message: "State not found" });
     }
@@ -70,7 +70,7 @@ const updateState = async (req, res) => {
       .collation({ locale: "en", strength: 2 })
       .lean()
       .exec();
-    if (duplicate && duplicate?._id.toString() !== id) {
+    if (duplicate && duplicate?._id.toString() !== _id) {
       return res.status(409).json({ message: "Duplicate state name" });
     }
     state.name = name;
@@ -88,15 +88,15 @@ const updateState = async (req, res) => {
  */
 const deleteState = async (req, res) => {
   try {
-    const { id } = req.body;
-    if (!id) {
+    const { _id } = req.body;
+    if (!_id) {
       return res.status(400).json({ message: "State ID required" });
     }
-    const state = await State.findById(id).exec();
+    const state = await State.findById(_id).exec();
     if (!state) {
       return res.status(400).json({ message: "State not found" });
     }
-    const city = await City.findOne({ state: id })
+    const city = await City.findOne({ state: _id })
       .collation({ locale: "en", strength: 2 })
       .lean()
       .exec();

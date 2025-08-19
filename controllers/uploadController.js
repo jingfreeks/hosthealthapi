@@ -16,6 +16,7 @@ const getUpload = async (req, res) => {
     if (!req.files || !req.files.avatar) {
       return res.status(400).json({ status: "error", message: "No file uploaded" });
     }
+   
     const files = req.files;
     const md5 = files.avatar.md5;
     const extension = path.extname(files.avatar.name);

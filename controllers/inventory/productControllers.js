@@ -2,7 +2,7 @@
  * Controller for Product operations
  * @module controllers/productControllers
  */
-const Product = require("../models/Products");
+const Product = require("../../models/Products");
 
 /**
  * Get all products
@@ -37,7 +37,7 @@ const createNewProducts = async (req, res) => {
       .lean()
       .exec();
     if (duplicate) {
-      return res.status(409).json({ message: "Duplicate Product name" });
+      return res.status(409).json({ message: "Duplicate Inventory Product name" });
     }
     const product = await Product.create({ title, description, category, image, price });
     if (product) {
@@ -117,7 +117,7 @@ const viewProductDetails = async (req, res) => {
     const { prodId } = req.params;
     const product = await Product.findById(prodId).exec();
     if (!product) {
-      return res.status(400).json({ message: "Product is not found in our list" });
+      return res.status(400).json({ message: "Inventory Product is not found in our list" });
     }
     return res.json(product);
   } catch (error) {

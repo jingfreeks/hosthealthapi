@@ -62,7 +62,7 @@ describe('deptController', () => {
     });
     it('should return 400 if department not found', async () => {
       Dept.findById.mockReturnValueOnce({ exec: jest.fn().mockResolvedValueOnce(null) });
-      const req = { body: { id: '1', name: 'Dept1' } };
+      const req = { body: { _id: '1', name: 'Dept1' } };
       const res = mockRes();
       await deptController.updateDept(req, res);
       expect(res.status).toHaveBeenCalledWith(400);
@@ -73,7 +73,7 @@ describe('deptController', () => {
       Dept.findOne.mockReturnValueOnce({
         collation: () => ({ lean: () => ({ exec: jest.fn().mockResolvedValueOnce({ _id: '2', name: 'Dept1' }) }) })
       });
-      const req = { body: { id: '1', name: 'Dept1' } };
+      const req = { body: { _id: '1', name: 'Dept1' } };
       const res = mockRes();
       await deptController.updateDept(req, res);
       expect(res.status).toHaveBeenCalledWith(409);
@@ -91,7 +91,7 @@ describe('deptController', () => {
     });
     it('should return 400 if department not found', async () => {
       Dept.findById.mockReturnValueOnce({ exec: jest.fn().mockResolvedValueOnce(null) });
-      const req = { body: { id: '1' } };
+      const req = { body: { _id: '1' } };
       const res = mockRes();
       await deptController.deleteDept(req, res);
       expect(res.status).toHaveBeenCalledWith(400);
