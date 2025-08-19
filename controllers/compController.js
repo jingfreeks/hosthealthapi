@@ -23,6 +23,7 @@ const getAllCompanies = async (req, res) => {
         const state = city ? await State.findById(city.state).lean().exec() : null;
         return {
           ...company,
+          companyId:company._id,
           cityId: city ? city._id : undefined,
           cityname: city ? city.name : undefined,
           state: state ? state.name.substring(0, 2).toUpperCase() : undefined,
