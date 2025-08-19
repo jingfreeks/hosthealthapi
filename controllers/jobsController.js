@@ -10,8 +10,8 @@ const Dept = require("../models/Department");
 const Shift = require("../models/Shift");
 const Myjob = require("../models/Myjobs");
 const Pskill = require("../models/Pskills");
-const utilscontroller=require('./utils');
-const Profile = require('../models/Profile');
+const utilscontroller = require("./utils");
+const Profile = require("../models/Profile");
 
 /**
  * Get detailed info for a single job
@@ -22,25 +22,29 @@ const Profile = require('../models/Profile');
 const calculateMatchPercentage = async (jobSkillTags, userId) => {
   try {
     if (!userId) return 0;
-    
+
     // Get user skills
     const userSkills = await Pskill.find({ user: userId }).lean().exec();
     if (!userSkills || userSkills.length === 0) return 0;
-    
+
     // Extract skill names from user skills
-    const userSkillNames = userSkills.map(pskill => pskill.skill.toLowerCase());
-    
+    const userSkillNames = userSkills.map((pskill) =>
+      pskill.skill.toLowerCase()
+    );
+
     // Count matching skills
-    const matchingSkills = jobSkillTags.filter(jobSkill => 
+    const matchingSkills = jobSkillTags.filter((jobSkill) =>
       userSkillNames.includes(jobSkill.toLowerCase())
     );
-    
+
     // Calculate percentage
-    const matchPercentage = Math.round((matchingSkills.length / jobSkillTags.length) * 100);
-    
+    const matchPercentage = Math.round(
+      (matchingSkills.length / jobSkillTags.length) * 100
+    );
+
     return matchPercentage;
   } catch (error) {
-    console.error('Error calculating match percentage:', error);
+    console.error("Error calculating match percentage:", error);
     return 0;
   }
 };
@@ -52,22 +56,27 @@ const getjobdetailinfo = async (job, userId = null) => {
   const dept = await Dept.findById(job.department).lean().exec();
   const shift = await Shift.findById(job.shift).lean().exec();
   const myjob = await Myjob.findOne({ jobId: job._id }).exec();
-  
+
   // Calculate match percentage if userId is provided
   let matchPercentage = 0;
   if (userId && job.skillTags) {
     matchPercentage = await calculateMatchPercentage(job.skillTags, userId);
   }
-  
   return {
     ...job,
+    salary:job.salaryrange,
     statename: state.name.substring(0, 2),
+    cityId: city._id,
     cityname: city.name,
+    companyId: comp._id,
     compname: comp.name,
     compaddress: comp.address,
-    shiftname: shift.title,
+    shiftId: shift?._id || null,
+    shiftname: shift?.title || "Not specified",
     deptname: dept.name,
-    myjobStatus: myjob?.status || 'available',
+    departmentId: dept._id,
+    myjobStatus: myjob?.status || "available",
+    status: job.status,
     matchPercentage: matchPercentage,
   };
 };
@@ -76,7 +85,9 @@ const getjobdetailinfo = async (job, userId = null) => {
  * Get detailed info for a list of jobs
  */
 const getJobsDetails = async (jobs, userId = null) => {
-  return await Promise.all(jobs.map(async (job) => getjobdetailinfo(job, userId)));
+  return await Promise.all(
+    jobs.map(async (job) => getjobdetailinfo(job, userId))
+  );
 };
 
 /**
@@ -87,14 +98,19 @@ const getJobsDetails = async (jobs, userId = null) => {
 const getAllJobs = async (req, res) => {
   try {
     const { userId } = req.query; // Get userId from query params for match calculation
-    const jobs = await Jobs.find().lean().exec();
-    if (!jobs?.length) {
-      return res.status(400).json({ message: "No jobs found" });
-    }
-    const jobsDetails = await getJobsDetails(jobs, userId);
-    return res.json(jobsDetails);
+    const jobs=await utilscontroller.getAllJobs();
+    return res.json(jobs);
+    console.log('jobs:', jobs);
+    // const jobs = await Jobs.find().lean().exec();
+    // if (!jobs?.length) {
+    //   return res.status(400).json({ message: "No jobs found" });
+    // }
+    // const jobsDetails = await getJobsDetails(jobs, userId);
+    // return res.json(jobsDetails);
   } catch (error) {
-    return res.status(500).json({ message: "Server error", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "Server error", error: error.message });
   }
 };
 
@@ -106,22 +122,30 @@ const getAllJobs = async (req, res) => {
 const createNewJobs = async (req, res) => {
   try {
     const {
-      image,
+      // image,
       jobtitle,
       compId,
       deptId,
-      weeks,
       shiftId,
-      match,
       salaryrange,
-      jobDescription,
-      jobRequirements,
+      description,
+      requirements,
       jobType,
       status,
-      skillTags,
+      // skillTags,
     } = req.body;
-    if (!image || !jobtitle || !compId || !deptId || !weeks || !shiftId || !match || !salaryrange || !jobDescription || !jobRequirements || !jobType || !skillTags || !Array.isArray(skillTags) || skillTags.length === 0) {
-      return res.status(400).json({ message: "All fields are required including at least one skill tag" });
+    if (
+      !jobtitle ||
+      !compId ||
+      !deptId ||
+      !shiftId ||
+      !status ||
+      !salaryrange ||
+      !description ||
+      !requirements ||
+      !jobType
+    ) {
+      return res.status(400).json({ message: "All fields are requireds" });
     }
     const duplicate = await Jobs.findOne({ jobtitle, company: compId })
       .collation({ locale: "en", strength: 2 })
@@ -136,26 +160,49 @@ const createNewJobs = async (req, res) => {
     }
     const dept = await Dept.findById(deptId).exec();
     if (!dept) {
-      return res.status(400).json({ message: "Department not found in our list" });
+      return res
+        .status(400)
+        .json({ message: "Department not found in our list" });
     }
-    const shift = await Shift.findById(shiftId).exec();
-    if (!shift) {
-      return res.status(400).json({ message: "Shift  not found in our list" });
-    }
+
+    // const shift = await Shift.findById(shiftId).exec();
+    // if (!shift) {
+    //   return res.status(400).json({ message: "Shift  not found in our list" });
+    // }
+
+    // const jobs = await Jobs.create({
+    //   image,
+    //   jobtitle,
+    //   company: compId,
+    //   department: deptId,
+    //   weeks,
+    //   shift: shiftId,
+    //   match,
+    //   salaryrange,
+    //   jobDescription,
+    //   jobRequirements,
+    //   jobType,
+    //   status: status || 'Active',
+    //   skillTags,
+    // });
+    // if (jobs) {
+    //   return res.status(201).json({ message: "New jobs created" });
+    // } else {
+    //   return res.status(400).json({ message: "Invalid jobs data received" });
+    // }
+
     const jobs = await Jobs.create({
-      image,
       jobtitle,
       company: compId,
       department: deptId,
-      weeks,
+      // weeks,
       shift: shiftId,
-      match,
+      // match,
       salaryrange,
-      jobDescription,
-      jobRequirements,
+      jobRequirements:requirements,
+      jobDescription: description,
       jobType,
-      status: status || 'Active',
-      skillTags,
+      status: "Active",
     });
     if (jobs) {
       return res.status(201).json({ message: "New jobs created" });
@@ -163,7 +210,9 @@ const createNewJobs = async (req, res) => {
       return res.status(400).json({ message: "Invalid jobs data received" });
     }
   } catch (error) {
-    return res.status(500).json({ message: "Server error", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "Server error", error: error.message });
   }
 };
 
@@ -175,27 +224,68 @@ const createNewJobs = async (req, res) => {
 const updateJobs = async (req, res) => {
   try {
     const {
-      id,
-      image,
-      jobtitle,
+      _id,
+      // image,
+      // jobtitle,
+      // compId,
+      // deptId,
+      // weeks,
+      // shiftId,
+      // match,
+      // salaryrange,
+      // jobDescription,
+      // jobRequirements,
+      // jobType,
+      // status,
+      // skillTags,
+       jobtitle,
       compId,
       deptId,
-      weeks,
       shiftId,
-      match,
       salaryrange,
-      jobDescription,
-      jobRequirements,
+      description,
+      requirements,
       jobType,
       status,
-      skillTags,
     } = req.body;
-    if (!id || !image || !jobtitle || !deptId || !weeks || !shiftId || !match || !salaryrange || !compId || !jobDescription || !jobRequirements || !jobType || !skillTags || !Array.isArray(skillTags) || skillTags.length === 0) {
-      return res.status(400).json({ message: "All fields are required including at least one skill tag" });
+    console.log("Update job request body:", req.body);
+    if (
+      // !id ||
+      // !image ||
+      // !jobtitle ||
+      // !deptId ||
+      // !weeks ||
+      // !shiftId ||
+      // !match ||
+      // !salaryrange ||
+      // !compId ||
+      // !jobDescription ||
+      // !jobRequirements ||
+      // !jobType ||
+      // !skillTags ||
+      // !Array.isArray(skillTags) ||
+      // skillTags.length === 0
+      !jobtitle ||
+      !compId ||
+      !deptId ||
+      !shiftId ||
+      !status ||
+      !salaryrange ||
+      !description ||
+      !requirements ||
+      !jobType
+    ) {
+      return res
+        .status(400)
+        .json({
+          message: "All fields are required",
+        });
     }
     const dept = await Dept.findById(deptId).exec();
     if (!dept) {
-      return res.status(400).json({ message: "Department not found in our list" });
+      return res
+        .status(400)
+        .json({ message: "Department not found in our list" });
     }
     const shift = await Shift.findById(shiftId).exec();
     if (!shift) {
@@ -205,30 +295,32 @@ const updateJobs = async (req, res) => {
       .collation({ locale: "en", strength: 2 })
       .lean()
       .exec();
-    if (duplicate && duplicate?._id.toString() !== id) {
+    if (duplicate && duplicate?._id.toString() !== _id) {
       return res.status(409).json({ message: "Duplicate Jobs in the company" });
     }
-    const jobs = await Jobs.findById(id).exec();
+    const jobs = await Jobs.findById(_id).exec();
     if (!jobs) {
       return res.status(400).json({ message: "Job not found" });
     }
-    jobs.image = image;
+    // jobs.image = image;
     jobs.jobtitle = jobtitle;
     jobs.company = compId;
     jobs.department = deptId;
-    jobs.weeks = weeks;
+    // jobs.weeks = weeks;
     jobs.shift = shiftId;
-    jobs.match = match;
+    // jobs.match = match;
     jobs.salaryrange = salaryrange;
-    jobs.jobDescription = jobDescription;
-    jobs.jobRequirements = jobRequirements;
+    jobs.jobDescription = description;
+    jobs.jobRequirements = requirements;
     jobs.jobType = jobType;
     jobs.status = status || jobs.status;
-    jobs.skillTags = skillTags;
+    // jobs.skillTags = skillTags;
     const updatedJobs = await jobs.save();
     return res.json(`'${updatedJobs.jobtitle}' job updated`);
   } catch (error) {
-    return res.status(500).json({ message: "Server error", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "Server error", error: error.message });
   }
 };
 
@@ -239,11 +331,12 @@ const updateJobs = async (req, res) => {
  */
 const deleteJobs = async (req, res) => {
   try {
-    const { id } = req.body;
-    if (!id) {
+    console.log("Delete job request body:", req.body);
+    const { _id } = req.body;
+    if (!_id) {
       return res.status(400).json({ message: "Job ID required" });
     }
-    const jobs = await Jobs.findById(id).exec();
+    const jobs = await Jobs.findById(_id).exec();
     if (!jobs) {
       return res.status(400).json({ message: "Job not found" });
     }
@@ -251,7 +344,9 @@ const deleteJobs = async (req, res) => {
     const reply = `Job '${result.name}' with ID ${result._id} deleted`;
     return res.json(reply);
   } catch (error) {
-    return res.status(500).json({ message: "Server error", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "Server error", error: error.message });
   }
 };
 
@@ -270,7 +365,9 @@ const viewJobDetails = async (req, res) => {
     const jobsDetails = await getjobdetailinfo(jobs);
     return res.json(jobsDetails);
   } catch (error) {
-    return res.status(500).json({ message: "Server error", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "Server error", error: error.message });
   }
 };
 
@@ -289,7 +386,9 @@ const viewAdminJobDetails = async (req, res) => {
     const jobsDetails = await getjobdetailinfo(jobs);
     return res.json(jobsDetails);
   } catch (error) {
-    return res.status(500).json({ message: "Server error", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "Server error", error: error.message });
   }
 };
 
@@ -308,7 +407,9 @@ const getAllClientJobs = async (req, res) => {
     const jobsDetails = await getJobsDetails(jobs, userId);
     return res.json(jobsDetails);
   } catch (error) {
-    return res.status(500).json({ message: "Server error", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "Server error", error: error.message });
   }
 };
 
@@ -321,12 +422,17 @@ const getJobsByStatus = async (req, res) => {
   try {
     const { status } = req.params;
     const { userId } = req.query;
-    const validStatuses = ['Active', 'Inactive', 'Closed', 'Draft'];
-    
+    const validStatuses = ["Active", "Inactive", "Closed", "Draft"];
+
     if (!validStatuses.includes(status)) {
-      return res.status(400).json({ message: "Invalid status. Must be one of: Active, Inactive, Closed, Draft" });
+      return res
+        .status(400)
+        .json({
+          message:
+            "Invalid status. Must be one of: Active, Inactive, Closed, Draft",
+        });
     }
-    
+
     const jobs = await Jobs.find({ status }).lean().exec();
     if (!jobs?.length) {
       return res.status(400).json({ message: `No ${status} jobs found` });
@@ -334,7 +440,9 @@ const getJobsByStatus = async (req, res) => {
     const jobsDetails = await getJobsDetails(jobs, userId);
     return res.json(jobsDetails);
   } catch (error) {
-    return res.status(500).json({ message: "Server error", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "Server error", error: error.message });
   }
 };
 
@@ -347,12 +455,23 @@ const getJobsByType = async (req, res) => {
   try {
     const { jobType } = req.params;
     const { userId } = req.query;
-    const validTypes = ['Full-time', 'Part-time', 'Contract', 'Temporary', 'Internship'];
-    
+    const validTypes = [
+      "Full-time",
+      "Part-time",
+      "Contract",
+      "Temporary",
+      "Internship",
+    ];
+
     if (!validTypes.includes(jobType)) {
-      return res.status(400).json({ message: "Invalid job type. Must be one of: Full-time, Part-time, Contract, Temporary, Internship" });
+      return res
+        .status(400)
+        .json({
+          message:
+            "Invalid job type. Must be one of: Full-time, Part-time, Contract, Temporary, Internship",
+        });
     }
-    
+
     const jobs = await Jobs.find({ jobType }).lean().exec();
     if (!jobs?.length) {
       return res.status(400).json({ message: `No ${jobType} jobs found` });
@@ -360,7 +479,9 @@ const getJobsByType = async (req, res) => {
     const jobsDetails = await getJobsDetails(jobs, userId);
     return res.json(jobsDetails);
   } catch (error) {
-    return res.status(500).json({ message: "Server error", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "Server error", error: error.message });
   }
 };
 
@@ -373,21 +494,27 @@ const getJobsBySkillMatch = async (req, res) => {
   try {
     const { minMatchPercentage } = req.params;
     const { userId } = req.query;
-    
+
     if (!userId) {
-      return res.status(400).json({ message: "userId is required for skill matching" });
+      return res
+        .status(400)
+        .json({ message: "userId is required for skill matching" });
     }
-    
+
     const minMatch = parseInt(minMatchPercentage);
     if (isNaN(minMatch) || minMatch < 0 || minMatch > 100) {
-      return res.status(400).json({ message: "minMatchPercentage must be a number between 0 and 100" });
+      return res
+        .status(400)
+        .json({
+          message: "minMatchPercentage must be a number between 0 and 100",
+        });
     }
-    
+
     const jobs = await Jobs.find().lean().exec();
     if (!jobs?.length) {
       return res.status(400).json({ message: "No jobs found" });
     }
-    
+
     // Get jobs with match percentage >= minMatch
     const jobsWithMatch = await Promise.all(
       jobs.map(async (job) => {
@@ -395,19 +522,27 @@ const getJobsBySkillMatch = async (req, res) => {
         return jobDetail;
       })
     );
-    
-    const filteredJobs = jobsWithMatch.filter(job => job.matchPercentage >= minMatch);
-    
+
+    const filteredJobs = jobsWithMatch.filter(
+      (job) => job.matchPercentage >= minMatch
+    );
+
     if (!filteredJobs.length) {
-      return res.status(400).json({ message: `No jobs found with ${minMatch}% or higher skill match` });
+      return res
+        .status(400)
+        .json({
+          message: `No jobs found with ${minMatch}% or higher skill match`,
+        });
     }
-    
+
     // Sort by match percentage (highest first)
     filteredJobs.sort((a, b) => b.matchPercentage - a.matchPercentage);
-    
+
     return res.json(filteredJobs);
   } catch (error) {
-    return res.status(500).json({ message: "Server error", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "Server error", error: error.message });
   }
 };
 

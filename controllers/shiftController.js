@@ -57,11 +57,12 @@ const createNewShift = async (req, res) => {
  */
 const updateShift = async (req, res) => {
   try {
-    const { id, title } = req.body;
-    if (!id || !title) {
+    const { _id, title } = req.body;
+    console.log("Update shift request body:", req.body);
+    if (!_id || !title) {
       return res.status(400).json({ message: "All fields are required" });
     }
-    const shift = await Shift.findById(id).exec();
+    const shift = await Shift.findById(_id).exec();
     if (!shift) {
       return res.status(400).json({ message: "Shift not found" });
     }
@@ -69,7 +70,7 @@ const updateShift = async (req, res) => {
       .collation({ locale: "en", strength: 2 })
       .lean()
       .exec();
-    if (duplicate && duplicate?._id.toString() !== id) {
+    if (duplicate && duplicate?._id.toString() !== _id) {
       return res.status(409).json({ message: "Duplicate shift title" });
     }
     shift.title = title;
@@ -87,11 +88,11 @@ const updateShift = async (req, res) => {
  */
 const deleteShift = async (req, res) => {
   try {
-    const { id } = req.body;
-    if (!id) {
+    const { _id } = req.body;
+    if (!_id) {
       return res.status(400).json({ message: "Shift ID required" });
     }
-    const shift = await Shift.findById(id).exec();
+    const shift = await Shift.findById(_id).exec();
     if (!shift) {
       return res.status(400).json({ message: "Shift not found" });
     }
